@@ -1,15 +1,15 @@
-# File: awslambda_consts.py
+# File: awssystemsmanager_consts.py
 # Copyright (c) 2019 Splunk Inc.
 #
 # SPLUNK CONFIDENTIAL - Use or disclosure of this material in whole or in part
 # without a valid written license from Splunk Inc. is PROHIBITED.
 # Define your constants here
 
-LAMBDA_JSON_ACCESS_KEY = "access_key"
-LAMBDA_JSON_SECRET_KEY = "secret_key"
-LAMBDA_JSON_REGION = "region"
+SSM_JSON_ACCESS_KEY = "access_key"
+SSM_JSON_SECRET_KEY = "secret_key"
+SSM_JSON_REGION = "region"
 
-LAMBDA_REGION_DICT = {
+SSM_REGION_DICT = {
         "US East (N. Virginia)": "us-east-1",
         "US East (Ohio)": "us-east-2",
         "US West (N. California)": "us-west-1",

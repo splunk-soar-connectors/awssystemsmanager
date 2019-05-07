@@ -1,4 +1,4 @@
-# File: awslambda_connector.py
+# File: awssystemsmanager_connector.py
 # Copyright (c) 2019 Splunk Inc.
 #
 # SPLUNK CONFIDENTIAL - Use or disclosure of this material in whole or in part
@@ -10,7 +10,7 @@ from phantom.base_connector import BaseConnector
 from phantom.action_result import ActionResult
 
 # Usage of the consts file is recommended
-from awslambda_consts import *
+from awssystemsmanager_consts import *
 from boto3 import client
 from datetime import datetime
 from botocore.config import Config
@@ -18,7 +18,7 @@ import botocore.response as br
 import botocore.paginate as bp
 import requests
 import json
-import base64
+# import base64
 
 
 class RetVal(tuple):
@@ -26,12 +26,12 @@ class RetVal(tuple):
         return tuple.__new__(RetVal, (val1, val2))
 
 
-class AwsLambdaConnector(BaseConnector):
+class AwsSystemsManagerConnector(BaseConnector):
 
     def __init__(self):
 
         # Call the BaseConnectors init first
-        super(AwsLambdaConnector, self).__init__()
+        super(AwsSystemsManagerConnector, self).__init__()
 
         self._state = None
         self._region = None
@@ -90,13 +90,13 @@ class AwsLambdaConnector(BaseConnector):
                     resp_json['Payload'] = {'body': "", 'statusCode': resp_json['StatusCode']}
             except Exception as e:
                 exception_message = e.args[0].encode('utf-8').strip()
-                return RetVal(action_result.set_status(phantom.APP_ERROR, 'boto3 call to Lambda failed', exception_message), None)
+                return RetVal(action_result.set_status(phantom.APP_ERROR, 'boto3 call to SSM failed', exception_message), None)
         else:
             try:
                 paginator = self._client.get_paginator(method)
                 resp_json = paginator.paginate(**kwargs)
             except Exception as e:
-                return RetVal(action_result.set_status(phantom.APP_ERROR, 'boto3 call to Lambda failed', e), None)
+                return RetVal(action_result.set_status(phantom.APP_ERROR, 'boto3 call to SSM failed', e), None)
 
         return phantom.APP_SUCCESS, self._sanitize_data(resp_json)
 
@@ -110,7 +110,7 @@ class AwsLambdaConnector(BaseConnector):
             if self._access_key and self._secret_key:
                 self.debug_print("Creating boto3 client with API keys")
                 self._client = client(
-                    'lambda',
+                    'ssm',
                     region_name=self._region,
                     aws_access_key_id=self._access_key,
                     aws_secret_access_key=self._secret_key,
@@ -118,7 +118,7 @@ class AwsLambdaConnector(BaseConnector):
             else:
                 self.debug_print("Creating boto3 client without API keys")
                 self._client = client(
-                    'lambda',
+                    'ssm',
                     region_name=self._region,
                     config=boto_config)
         except Exception as e:
@@ -137,7 +137,7 @@ class AwsLambdaConnector(BaseConnector):
             return action_result.get_status()
 
         # make rest call
-        ret_val, resp_json = self._make_boto_call(action_result, 'list_functions', MaxItems=1)
+        ret_val, resp_json = self._make_boto_call(action_result, 'list_commands', MaxResults=1)
 
         if (phantom.is_fail(ret_val)):
             self.save_progress("Test Connectivity Failed.")
@@ -145,62 +145,6 @@ class AwsLambdaConnector(BaseConnector):
 
         # Return success
         self.save_progress("Test Connectivity Passed")
-        return action_result.set_status(phantom.APP_SUCCESS)
-
-    def _handle_invoke_lambda(self, param):
-
-        # Implement the handler here
-        # use self.save_progress(...) to send progress messages back to the platform
-        self.save_progress("In action handler for: {0}".format(self.get_action_identifier()))
-
-        # Add an action result object to self (BaseConnector) to represent the action for this param
-        action_result = self.add_action_result(ActionResult(dict(param)))
-
-        if not self._create_client(action_result):
-            return action_result.get_status()
-
-        function_name = param['function_name']
-        invocation_type = param.get('invocation_type')
-        log_type = param.get('log_type')
-        client_context = param.get('client_context')
-        payload = param.get('payload')
-        qualifier = param.get('qualifier')
-        empty_payload = False
-
-        args = {
-            'FunctionName': function_name
-        }
-        if invocation_type:
-            args['InvocationType'] = invocation_type
-        if log_type:
-            args['LogType'] = log_type
-        if client_context:
-            args['ClientContext'] = base64.b64encode(str(client_context)).decode('utf-8')
-        if payload:
-            args['Payload'] = payload
-        if qualifier:
-            args['Qualifier'] = qualifier
-
-        if invocation_type == 'Event' or invocation_type == 'DryRun':
-            empty_payload = True
-
-        # make rest call
-        ret_val, response = self._make_boto_call(action_result, 'invoke', False, empty_payload, **args)
-
-        if (phantom.is_fail(ret_val)):
-            return action_result.get_status()
-
-        # Add the response into the data section
-        action_result.add_data(response)
-
-        # Add a dictionary that is made up of the most important values from data into the summary
-        summary = action_result.update_summary({})
-        if response.get('FunctionError'):
-            summary['status'] = 'Lambda invoked and returned FunctionError'
-            return action_result.set_status(phantom.APP_ERROR, "Lambda invoked and returned FunctionError")
-        else:
-            summary['status'] = 'Successfully invoked lambda'
-
         return action_result.set_status(phantom.APP_SUCCESS)
 
     def _handle_list_functions(self, param):
@@ -309,9 +253,6 @@ class AwsLambdaConnector(BaseConnector):
         if action_id == 'test_connectivity':
             ret_val = self._handle_test_connectivity(param)
 
-        elif action_id == 'invoke_lambda':
-            ret_val = self._handle_invoke_lambda(param)
-
         elif action_id == 'list_functions':
             ret_val = self._handle_list_functions(param)
 
@@ -329,12 +270,12 @@ class AwsLambdaConnector(BaseConnector):
         # get the asset config
         config = self.get_config()
 
-        if LAMBDA_JSON_ACCESS_KEY in config:
-            self._access_key = config.get(LAMBDA_JSON_ACCESS_KEY)
-        if LAMBDA_JSON_SECRET_KEY in config:
-            self._secret_key = config.get(LAMBDA_JSON_SECRET_KEY)
+        if SSM_JSON_ACCESS_KEY in config:
+            self._access_key = config.get(SSM_JSON_ACCESS_KEY)
+        if SSM_JSON_SECRET_KEY in config:
+            self._secret_key = config.get(SSM_JSON_SECRET_KEY)
 
-        self._region = LAMBDA_REGION_DICT.get(config[LAMBDA_JSON_REGION])
+        self._region = SSM_REGION_DICT.get(config[SSM_JSON_REGION])
 
         self._proxy = {}
         env_vars = config.get('_reserved_environment_variables', {})
@@ -405,7 +346,7 @@ if __name__ == '__main__':
         in_json = json.loads(in_json)
         print(json.dumps(in_json, indent=4))
 
-        connector = AwsLambdaConnector()
+        connector = AwsSystemsManagerConnector()
         connector.print_progress_message = True
 
         if (session_id is not None):
