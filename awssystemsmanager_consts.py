@@ -31,3 +31,8 @@ SSM_REGION_DICT = {
         "AWS GovCloud (US-East)": "us-gov-east-1",
         "AWS GovCloud (US)": "us-gov-west-1"
     }
+
+POWERSHELL_DOCUMENT = 'AWS-RunPowerShellScript'
+POWERSHELL_DOC_HASH = '2142e42a19e0955cc09e43600bf2e633df1917b69d2be9693737dfd62e0fdf61'
+LINUX_DOCUMENT = 'AWS-RunShellScript'
+LINUX_DOC_HASH = '99749de5e62f71e5ebe9a55c2321e2c394796afe7208cff048696541e6f6771e'

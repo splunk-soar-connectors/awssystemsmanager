@@ -147,7 +147,7 @@ class AwsSystemsManagerConnector(BaseConnector):
         self.save_progress("Test Connectivity Passed")
         return action_result.set_status(phantom.APP_SUCCESS)
 
-    def _handle_list_functions(self, param):
+    def _handle_send_command(self, param):
 
         self.save_progress("In action handler for: {0}".format(self.get_action_identifier()))
 
@@ -157,39 +157,57 @@ class AwsSystemsManagerConnector(BaseConnector):
         if not self._create_client(action_result):
             return action_result.get_status()
 
-        function_version = param.get('function_version')
-        next_token = param.get('next_token')
-        max_items = param.get('max_items')
+        instance_ids = param['instance_ids'].replace(" ", "").split(",")
+        platform_type = param['platform_type']
+        if platform_type == 'Windows':
+            document_name = POWERSHELL_DOCUMENT
+            document_hash = POWERSHELL_DOC_HASH
+        else:
+            document_name = LINUX_DOCUMENT
+            document_hash = LINUX_DOC_HASH
+        commands = param['commands'].split(",")
+        working_directory = param.get('working_directory')
+        timeout_seconds = param.get('timeout_seconds')
+        comment = param.get('comment')
+        output_s3_bucket_name = param.get('output_s3_bucket_name')
+        output_s3_key_prefix = param.get('output_s3_key_prefix')
 
-        args = {}
-        if function_version:
-            args['FunctionVersion'] = function_version
-        if next_token:
-            args['Marker'] = next_token
-        if max_items is not None:
-            args['MaxItems'] = int(max_items)
+        args = {
+            'InstanceIds': instance_ids,
+            'DocumentName': document_name,
+            'DocumentHash': document_hash,
+            'DocumentHashType': 'Sha256',
+            'Parameters': {
+                'commands': commands
+            }
+        }
+        if working_directory:
+            args['Parameters']['workingDirectory'] = [working_directory]
+        if timeout_seconds:
+            args['TimeoutSeconds'] = timeout_seconds
+        if comment:
+            args['Comment'] = comment
+        if output_s3_bucket_name:
+            args['OutputS3BucketName'] = output_s3_bucket_name
+        if output_s3_key_prefix:
+            args['OutputS3KeyPrefix'] = output_s3_key_prefix
 
         # make rest call
-        ret_val, response = self._make_boto_call(action_result, 'list_functions', **args)
+        ret_val, response = self._make_boto_call(action_result, 'send_command', **args)
 
         if (phantom.is_fail(ret_val)):
             return action_result.get_status()
-
-        if response.get('error', None) is not None:
-            return action_result.set_status(phantom.APP_ERROR, "{}".format(response.get('error')))
 
         # Add the response into the data section
         action_result.add_data(response)
 
         # Add a dictionary that is made up of the most important values from data into the summary
         summary = action_result.update_summary({})
-        summary['num_functions'] = len(response.get('Functions', {}))
-        if response.get('NextMarker'):
-            summary['next_token'] = response.get('NextMarker', 'Unavailable')
+        summary['status'] = "Successfully executed commands"
 
         return action_result.set_status(phantom.APP_SUCCESS)
 
-    def _handle_add_permission(self, param):
+    def _handle_run_document(self, param):
 
         self.save_progress("In action handler for: {0}".format(self.get_action_identifier()))
 
@@ -199,35 +217,37 @@ class AwsSystemsManagerConnector(BaseConnector):
         if not self._create_client(action_result):
             return action_result.get_status()
 
-        function_name = param['function_name']
-        statement_id = param['statement_id']
-        action = param['action']
-        principal = param['principal']
-        source_arn = param.get('source_arn')
-        source_account = param.get('source_account')
-        event_source_token = param.get('event_source_token')
-        qualifier = param.get('qualifier')
-        revision_id = param.get('revision_id')
+        instance_ids = param['instance_ids'].replace(" ", "").split(",")
+        document_name = param['document_name']
+        document_hash = param['document_hash']
+        document_hash_type = param['document_hash_type']
+        parameters = json.loads(param['parameters'])
+        working_directory = param.get('working_directory')
+        timeout_seconds = param.get('timeout_seconds')
+        comment = param.get('comment')
+        output_s3_bucket_name = param.get('output_s3_bucket_name')
+        output_s3_key_prefix = param.get('output_s3_key_prefix')
 
         args = {
-            'FunctionName': function_name,
-            'StatementId': statement_id,
-            'Action': action,
-            'Principal': principal
+            'InstanceIds': instance_ids,
+            'DocumentName': document_name,
+            'DocumentHash': document_hash,
+            'DocumentHashType': document_hash_type,
+            'Parameters': parameters
         }
-        if source_arn:
-            args['SourceArn'] = source_arn
-        if source_account:
-            args['SourceAccount'] = source_account
-        if event_source_token:
-            args['EventSourceToken'] = event_source_token
-        if qualifier:
-            args['Qualifier'] = qualifier
-        if revision_id:
-            args['RevisionId'] = revision_id
+        if working_directory:
+            args['Parameters']['workingDirectory'] = [working_directory]
+        if timeout_seconds:
+            args['TimeoutSeconds'] = timeout_seconds
+        if comment:
+            args['Comment'] = comment
+        if output_s3_bucket_name:
+            args['OutputS3BucketName'] = output_s3_bucket_name
+        if output_s3_key_prefix:
+            args['OutputS3KeyPrefix'] = output_s3_key_prefix
 
         # make rest call
-        ret_val, response = self._make_boto_call(action_result, 'add_permission', **args)
+        ret_val, response = self._make_boto_call(action_result, 'send_command', **args)
 
         if (phantom.is_fail(ret_val)):
             return action_result.get_status()
@@ -237,7 +257,129 @@ class AwsSystemsManagerConnector(BaseConnector):
 
         # Add a dictionary that is made up of the most important values from data into the summary
         summary = action_result.update_summary({})
-        summary['status'] = "Successfully added permission"
+        summary['status'] = "Successfully executed document"
+
+        return action_result.set_status(phantom.APP_SUCCESS)
+
+    def _handle_list_commands(self, param):
+
+        self.save_progress("In action handler for: {0}".format(self.get_action_identifier()))
+
+        # Add an action result object to self (BaseConnector) to represent the action for this param
+        action_result = self.add_action_result(ActionResult(dict(param)))
+
+        if not self._create_client(action_result):
+            return action_result.get_status()
+
+        command_id = param.get('command_id')
+        instance_id = param.get('instance_id')
+        max_results = param.get('max_results')
+        next_token = param.get('next_token')
+
+        args = {}
+        if command_id:
+            args['CommandId'] = command_id
+        if instance_id:
+            args['InstanceId'] = instance_id
+        if max_results:
+            args['MaxResults'] = max_results
+        if next_token:
+            args['NextToken'] = next_token
+
+        # make rest call
+        ret_val, response = self._make_boto_call(action_result, 'list_commands', **args)
+
+        if (phantom.is_fail(ret_val)):
+            return action_result.get_status()
+
+        # Add the response into the data section
+        action_result.add_data(response)
+
+        # Add a dictionary that is made up of the most important values from data into the summary
+        summary = action_result.update_summary({})
+        summary['status'] = "Successfully retrieved commands"
+        if response.get('NextToken'):
+            summary['next_token'] = response.get('NextToken', 'Unavailable')
+
+        return action_result.set_status(phantom.APP_SUCCESS)
+
+    def _handle_get_parameter(self, param):
+
+        self.save_progress("In action handler for: {0}".format(self.get_action_identifier()))
+
+        # Add an action result object to self (BaseConnector) to represent the action for this param
+        action_result = self.add_action_result(ActionResult(dict(param)))
+
+        if not self._create_client(action_result):
+            return action_result.get_status()
+
+        name = param['name']
+        with_decryption = param.get('with_decryption', False)
+
+        args = {
+            'Name': name,
+            'WithDecryption': with_decryption
+        }
+
+        # make rest call
+        ret_val, response = self._make_boto_call(action_result, 'get_parameter', **args)
+
+        if (phantom.is_fail(ret_val)):
+            return action_result.get_status()
+
+        # Add the response into the data section
+        action_result.add_data(response)
+
+        # Add a dictionary that is made up of the most important values from data into the summary
+        summary = action_result.update_summary({})
+        summary['status'] = "Successfully retrieved parameter"
+
+        return action_result.set_status(phantom.APP_SUCCESS)
+
+    def _handle_add_parameter(self, param):
+
+        self.save_progress("In action handler for: {0}".format(self.get_action_identifier()))
+
+        # Add an action result object to self (BaseConnector) to represent the action for this param
+        action_result = self.add_action_result(ActionResult(dict(param)))
+
+        if not self._create_client(action_result):
+            return action_result.get_status()
+
+        name = param['name']
+        description = param.get('description')
+        value = param['value']
+        type = param['type']
+        key_id = param.get('key_id')
+        overwrite = param['overwrite']
+        allowed_pattern = param.get('allowed_pattern')
+
+        args = {
+            'Name': name,
+            'Value': value,
+            'Type': type,
+            'Overwrite': overwrite
+        }
+
+        if description:
+            args['Description'] = description
+        if key_id:
+            args['KeyId'] = key_id
+        if allowed_pattern:
+            args['AllowedPattern'] = allowed_pattern
+
+        # make rest call
+        ret_val, response = self._make_boto_call(action_result, 'put_parameter', **args)
+
+        if (phantom.is_fail(ret_val)):
+            return action_result.get_status()
+
+        # Add the response into the data section
+        action_result.add_data(response)
+
+        # Add a dictionary that is made up of the most important values from data into the summary
+        summary = action_result.update_summary({})
+        summary['status'] = "Successfully added parameter"
 
         return action_result.set_status(phantom.APP_SUCCESS)
 
@@ -253,11 +395,20 @@ class AwsSystemsManagerConnector(BaseConnector):
         if action_id == 'test_connectivity':
             ret_val = self._handle_test_connectivity(param)
 
-        elif action_id == 'list_functions':
-            ret_val = self._handle_list_functions(param)
+        elif action_id == 'list_commands':
+            ret_val = self._handle_list_commands(param)
 
-        elif action_id == 'add_permission':
-            ret_val = self._handle_add_permission(param)
+        elif action_id == 'execute_program':
+            ret_val = self._handle_send_command(param)
+
+        elif action_id == 'run_document':
+            ret_val = self._handle_run_document(param)
+
+        elif action_id == 'get_parameter':
+            ret_val = self._handle_get_parameter(param)
+
+        elif action_id == 'add_parameter':
+            ret_val = self._handle_add_parameter(param)
 
         return ret_val
 
