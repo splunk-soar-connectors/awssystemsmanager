@@ -510,7 +510,7 @@
                     "data_type": "string",
                     "required": true,
                     "allow_list": true,
-                    "primary": false,
+                    "primary": true,
                     "contains": [
                         "sha256"
                     ],
@@ -907,14 +907,17 @@
                 "command_id": {
                     "description": "If provided, lists only the specified command",
                     "data_type": "string",
-                    "primary": false,
+                    "primary": true,
                     "required": false,
-                    "order": 0
+                    "order": 0,
+                    "contains": [
+                        "aws command id"
+                    ]
                 },
                 "instance_id": {
                     "description": "Lists commands issued against this instance ID",
                     "data_type": "string",
-                    "primary": false,
+                    "primary": true,
                     "required": false,
                     "order": 1,
                     "contains": [
@@ -1191,6 +1194,9 @@
                     "data_type": "string",
                     "example_values": [
                         "559f7bb2-1fdb-4605-9392-564234336606"
+                    ],
+                    "contains": [
+                        "aws command id"
                     ]
                 },
                 {
