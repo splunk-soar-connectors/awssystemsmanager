@@ -271,37 +271,43 @@ class AwsSystemsManagerConnector(BaseConnector):
         if not self._create_client(action_result):
             return action_result.get_status()
 
-        command_id = param.get('command_id')
-        instance_id = param.get('instance_id')
-        max_results = param.get('max_results')
-        next_token = param.get('next_token')
+        num_commands = 0
 
-        args = {}
-        if command_id:
-            args['CommandId'] = command_id
-        if instance_id:
-            args['InstanceId'] = instance_id
-        if max_results:
-            args['MaxResults'] = max_results
-        if next_token:
-            args['NextToken'] = next_token
+        while True:
 
-        # make rest call
-        ret_val, response = self._make_boto_call(action_result, 'list_commands', **args)
+            command_id = param.get('command_id')
+            instance_id = param.get('instance_id')
+            max_results = param.get('max_results')
+            next_token = param.get('next_token')
 
-        if (phantom.is_fail(ret_val)):
-            return action_result.get_status()
+            args = {}
+            if command_id:
+                args['CommandId'] = command_id
+            if instance_id:
+                args['InstanceId'] = instance_id
+            if max_results:
+                args['MaxResults'] = max_results
+            if next_token:
+                args['NextToken'] = next_token
 
-        # Add the response into the data section
-        action_result.add_data(response)
+            # make rest call
+            ret_val, response = self._make_boto_call(action_result, 'list_commands', **args)
 
-        # Add a dictionary that is made up of the most important values from data into the summary
-        summary = action_result.update_summary({})
-        summary['status'] = "Successfully retrieved commands"
-        if response.get('NextToken'):
-            summary['next_token'] = response.get('NextToken', 'Unavailable')
+            if (phantom.is_fail(ret_val)):
+                return action_result.get_status()
 
-        return action_result.set_status(phantom.APP_SUCCESS)
+            # Add the response into the data section
+            action_result.add_data(response)
+            next_token = response.get('NextToken')
+            num_commands = num_commands + len(response['Commands'])
+
+            if next_token and max_results is None:
+                param['next_token'] = response['NextToken']
+            else:
+                # Add a dictionary that is made up of the most important values from data into the summary
+                summary = action_result.update_summary({})
+                summary['num_commands'] = num_commands
+                return action_result.set_status(phantom.APP_SUCCESS)
 
     def _handle_get_parameter(self, param):
 

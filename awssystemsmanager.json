@@ -930,13 +930,6 @@
                     "primary": false,
                     "required": false,
                     "order": 2
-                },
-                "next_token": {
-                    "description": "The token for the next set of items to return",
-                    "data_type": "string",
-                    "primary": false,
-                    "required": false,
-                    "order": 3
                 }
             },
             "output": [
@@ -955,25 +948,28 @@
                     ]
                 },
                 {
-                    "data_path": "action_result.data.*.Commands.*.Parameters.Operation",
+                    "data_path": "action_result.data.*.Commands.*.Parameters.commands",
                     "data_type": "string",
                     "example_values": [
-                        "Install"
+                        "ps aux",
+                        "pwd"
                     ]
                 },
                 {
                     "data_path": "action_result.data.*.Commands.*.DocumentName",
                     "data_type": "string",
                     "example_values": [
-                        "AmazonInspector-ManageAWSAgent",
                         "AWS-RunShellScript"
                     ],
                     "column_name": "document name",
-                    "column_order": 2
+                    "column_order": "2"
                 },
                 {
                     "data_path": "action_result.data.*.Commands.*.OutputS3BucketName",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        "ssm-app-phantom"
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.Commands.*.OutputS3KeyPrefix",
@@ -993,7 +989,7 @@
                         "i-0ea1454477403286d"
                     ],
                     "column_name": "instance id",
-                    "column_order": 1,
+                    "column_order": "1",
                     "contains": [
                         "aws instance id"
                     ]
@@ -1005,13 +1001,12 @@
                         "Success"
                     ],
                     "column_name": "status",
-                    "column_order": 3
+                    "column_order": "3"
                 },
                 {
                     "data_path": "action_result.data.*.Commands.*.TargetCount",
                     "data_type": "numeric",
                     "example_values": [
-                        2,
                         1
                     ]
                 },
@@ -1027,11 +1022,11 @@
                     "data_path": "action_result.data.*.Commands.*.RequestedDateTime",
                     "data_type": "string",
                     "example_values": [
-                        "2019-05-16 10:50:27",
-                        "2019-05-15 13:22:19"
+                        "2019-05-22 01:41:52",
+                        "2019-05-22 15:46:39"
                     ],
                     "column_name": "requested date",
-                    "column_order": 4
+                    "column_order": "4"
                 },
                 {
                     "data_path": "action_result.data.*.Commands.*.ErrorCount",
@@ -1067,7 +1062,6 @@
                     "data_path": "action_result.data.*.Commands.*.CompletedCount",
                     "data_type": "numeric",
                     "example_values": [
-                        2,
                         1
                     ]
                 },
@@ -1078,18 +1072,18 @@
                 {
                     "data_path": "action_result.data.*.Commands.*.Comment",
                     "data_type": "string",
-                    "column_name": "comment",
-                    "column_order": 5,
                     "example_values": [
-                        "Run Doc Action"
-                    ]
+                        "Checking contents of directory"
+                    ],
+                    "column_name": "comment",
+                    "column_order": "5"
                 },
                 {
                     "data_path": "action_result.data.*.Commands.*.ExpiresAfter",
                     "data_type": "string",
                     "example_values": [
-                        "2019-05-16 12:00:27",
-                        "2019-05-15 15:22:19"
+                        "2019-05-22 03:41:52",
+                        "2019-05-22 16:47:09"
                     ]
                 },
                 {
@@ -1103,13 +1097,28 @@
                     "data_path": "action_result.data.*.Commands.*.CommandId",
                     "data_type": "string",
                     "example_values": [
-                        "559f7bb2-1fdb-4605-9392-564234336606",
-                        "1255eb52-058f-40be-9c4a-053ace286231"
+                        "c31c1788-5840-4d85-9eaa-58f851572140",
+                        "8fbd52dd-ddc9-4206-a49f-810ec50e929e"
                     ],
                     "column_name": "command id",
-                    "column_order": 0,
+                    "column_order": "0",
                     "contains": [
                         "aws command id"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.Commands.*.Parameters.workingDirectory",
+                    "data_type": "string",
+                    "example_values": [
+                        "/home/centos",
+                        "/usr/bin"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.NextToken",
+                    "data_type": "string",
+                    "example_values": [
+                        "AAEAAVExdeRKApBXO9ofnDcyXchyXgZ7RPfufGR1OtIvHtvJAAAAAFzlzDKccrMg7XM4Q8+saHge+Un5krslphWfAQkDdtLdInAKkv9SeBDQa38jCk3CGF7CeCS0ot5kmBwynEMvrdPFnOk4zio6CTbfdQovrUl4ayo+0aPYGYQMEMS8VRDZ5g0UzKE+Gh67dIJdL2xklSRpZIduR4dYymA5GutXj5mR2TT0z4yxi4OXuCRabc7epi2B8cqn+AL1FrHB4DqPYOT7y6HOXhUWE+uuN2m0X4DPTZD0q/LgV8XrpuN0GM3sc5SxJsuZje11oEhkm+WgsY23HL68ChRXvsdQGIS1ot9d5hGvNbwnMWCb0DKnMITDpEVQ6QIdg5qXmbXoniYgXGmatLg/0k+HsS5irMV8ejpR68aullGh9XTuhM+23iZzYrdtlTieP/WspQ4IcRKhR9otaTi0t/OS8Cb9UfMcRqA7N+swY67PQr68aOjbbSw3J6BQ6rYFQoVvryHxFsxdmhwDj8Ho4Y2FdyfcxkUqgOCAvtfwStOEcch/Ei2hcz7e1B8mYmGy8l7xSH/sfCmppsJIqCiVllOKevDfwSxP1iSi/BD5+8Xgrvcl14PCh5iiG4Y2CVnTs7Bzf2GOae5/J232aMIumkr7Q6OxSAoNWcTKhebjvoyssCaZjCLGWcV7A/+yTPiI+S+gS3QaReinjAAGupTcgkG3UbsmyeQMRU4ttF1okfmUsiAW1/XOVxdliWCchW2Pmm7nkNm+OhkF0rjeRx9LcQkXySInHiHCq7nyG391/ZHn1NKun/U40/tY4qSjuT/cl5GTlnX/AJShGJ4wAGqC3O0sPyKKnjCNM6sttTWqfCX7/aUNdsPOdwWSxfBrlk3Xdm8QpwrqfSvr0EB0SNrrrGG5w4KzVmHSZ+Y+v5Vc+mEfNsrBD22/ZX/ySOK0EVq7etlQUrXA4pzGTHwxt1kmMWOrqz5M1tpX6Rrqao04XURpyH5cGxhbNC1JpKdDo9G+kX11y1dO4F15GAhayCQikSuWJIH304nn2tDrldtYzyR02D52zu5l9bTp98cCC1AfHtfooFGrbKRusYFH9B8mSlaQLgRNju74Z9hQ//Gr8g=="
                     ]
                 },
                 {
@@ -1130,32 +1139,32 @@
                     "data_path": "action_result.data.*.ResponseMetadata.RequestId",
                     "data_type": "string",
                     "example_values": [
-                        "c192401a-0139-4244-9157-be8e6491b353",
-                        "dc7b5d9f-b280-4f59-8474-c952906f6750"
+                        "13a8b8fa-18dd-493f-b160-3d024f81d60e",
+                        "4e59e72f-4b08-4b4d-b804-95c261306282"
                     ]
                 },
                 {
                     "data_path": "action_result.data.*.ResponseMetadata.HTTPHeaders.date",
                     "data_type": "string",
                     "example_values": [
-                        "Fri, 17 May 2019 16:50:08 GMT",
-                        "Fri, 17 May 2019 17:26:53 GMT"
+                        "Wed, 22 May 2019 22:24:50 GMT",
+                        "Wed, 22 May 2019 23:15:56 GMT"
                     ]
                 },
                 {
                     "data_path": "action_result.data.*.ResponseMetadata.HTTPHeaders.x-amzn-requestid",
                     "data_type": "string",
                     "example_values": [
-                        "c192401a-0139-4244-9157-be8e6491b353",
-                        "dc7b5d9f-b280-4f59-8474-c952906f6750"
+                        "13a8b8fa-18dd-493f-b160-3d024f81d60e",
+                        "4e59e72f-4b08-4b4d-b804-95c261306282"
                     ]
                 },
                 {
                     "data_path": "action_result.data.*.ResponseMetadata.HTTPHeaders.content-length",
                     "data_type": "string",
                     "example_values": [
-                        "750",
-                        "2612"
+                        "3321",
+                        "786"
                     ]
                 },
                 {
@@ -1166,44 +1175,40 @@
                     ]
                 },
                 {
-                    "data_path": "action_result.message",
+                    "data_path": "action_result.data.*.Commands.*.Parameters.Operation",
                     "data_type": "string",
                     "example_values": [
-                        "Status: Successfully retrieved commands, Next token: AAEAAQoP8pKNwny+8kQ5pg8tLgPTishQwaJt6PinHvy6eXqTAAAAAFze7t4VrtPMyC/i6VU0tlo5pXuiDeQASrMxtbyrdD+/ERciVjq1dOV068NKUFqRjZbDYlDJQgGd9MRWARwvEe0hBV1W4sYc2LKtBZjBt3C4pvQR2MvE9XB2i3LrC7S4Irr1um3x6gu8CjnLQtl+8Fk1D+pRdgVTcv01thnp53TnqybCieHIl1HAEZJfYpB6NCzZgXYRuMM/cajNHeLpqgRoekRmM7wyanKYGq2094L/N0oOITdWa7clH4g75gT4Hrqz9QT2fQbhikiJhxvY5nmDoTbj33OB0eXXIoUPFl3MrL1Jp9Y4jGXQ7s2Q7QLjOAdifx7SQ3kvVT1YORw7G/WjJzjG3bayaTy5DCCilgZblrnCJoM3K0o1kLPq86h0AJZgrTXdVdw+tQ6kaCpayoASbMSrwVo0TPz42QePKSt+hpGD+62Vw9cIo3F91DK5Gr+CvZQFHFbgqgozYYrR/WpaobFneauGtxR9inxjw+mz3cPtPAzDtk67pBmAikGVQdTlTVTpHKOWnsRXZZ4+34MrOUjja9CmSfMdfaExjdDYj3z+mpymYaJRNkIxBKyFuATHoH2zhBNgiCYnfEUfkeLCvqVBajtvx5r9djV8zqw9WRbUdhuFwjpEYJrK6J5m2kP7xzOHZbYf/PGvj41KTd0GANK50pfSP3k97tKHnyq6RRXE6d8hxgYoH3ziS3l3TzHZkLK0Tft+3remc5ZjIynvl4nMRpdShD4gt0irBrSRvu1NdW2HjOwsONuno4f9eR7sx/8f+xytf+mygVOBq3XM3g/H7lv5+CVzcS0GlA9lkGQxgSVgGxV4iJCl7kN51qPY2AewV4IuduT0BY3F/DEqDUVjdQ8oIufPPLxMpaGR4pAy5DaexRC4KtG/TGAZlhjenvg3n2/bclBHsEvF1bi220HRYvAWpZWvs/eOLy26sTS021KBHDqumoChK+NuVSB0sYjqNWVdI5RlRs+DqX7xP/2GBZ0e4K7vzs78JwpBNSyWlkUeJum5b7eY+gRgVwzZZBG4kD7SSI4qOnfIfHhIfws4qQ8K5aesTzheHAe8nNPAKQ=="
+                        "Install"
                     ]
                 },
                 {
-                    "data_path": "action_result.parameter.instance_id",
+                    "data_path": "action_result.data.*.Commands.*.Parameters.executionTimeout",
                     "data_type": "string",
                     "example_values": [
-                        "i-0ea1454477403286d"
-                    ],
-                    "contains": [
-                        "aws instance id"
+                        "3600"
+                    ]
+                },
+                {
+                    "data_path": "action_result.message",
+                    "data_type": "string",
+                    "example_values": [
+                        "Num commands: 43",
+                        "Num commands: 1"
                     ]
                 },
                 {
                     "data_path": "action_result.parameter.max_results",
                     "data_type": "numeric",
                     "example_values": [
-                        2
+                        3
                     ]
                 },
                 {
-                    "data_path": "action_result.parameter.command_id",
-                    "data_type": "string",
+                    "data_path": "action_result.summary.num_commands",
+                    "data_type": "numeric",
                     "example_values": [
-                        "559f7bb2-1fdb-4605-9392-564234336606"
-                    ],
-                    "contains": [
-                        "aws command id"
-                    ]
-                },
-                {
-                    "data_path": "action_result.summary.status",
-                    "data_type": "string",
-                    "example_values": [
-                        "Successfully retrieved commands"
+                        43,
+                        1
                     ]
                 },
                 {
@@ -1221,38 +1226,23 @@
                     ]
                 },
                 {
-                    "data_path": "action_result.data.*.Commands.*.Parameters.commands",
+                    "data_path": "action_result.parameter.instance_id",
                     "data_type": "string",
                     "example_values": [
-                        "ls"
+                        "i-0ea1454477403286d"
+                    ],
+                    "contains": [
+                        "aws instance id"
                     ]
                 },
                 {
-                    "data_path": "action_result.data.*.Commands.*.Parameters.workingDirectory",
+                    "data_path": "action_result.parameter.command_id",
                     "data_type": "string",
                     "example_values": [
-                        "/usr/bin"
-                    ]
-                },
-                {
-                    "data_path": "action_result.data.*.NextToken",
-                    "data_type": "string",
-                    "example_values": [
-                        "AAEAAQoP8pKNwny+8kQ5pg8tLgPTishQwaJt6PinHvy6eXqTAAAAAFze7t4VrtPMyC/i6VU0tlo5pXuiDeQASrMxtbyrdD+/ERciVjq1dOV068NKUFqRjZbDYlDJQgGd9MRWARwvEe0hBV1W4sYc2LKtBZjBt3C4pvQR2MvE9XB2i3LrC7S4Irr1um3x6gu8CjnLQtl+8Fk1D+pRdgVTcv01thnp53TnqybCieHIl1HAEZJfYpB6NCzZgXYRuMM/cajNHeLpqgRoekRmM7wyanKYGq2094L/N0oOITdWa7clH4g75gT4Hrqz9QT2fQbhikiJhxvY5nmDoTbj33OB0eXXIoUPFl3MrL1Jp9Y4jGXQ7s2Q7QLjOAdifx7SQ3kvVT1YORw7G/WjJzjG3bayaTy5DCCilgZblrnCJoM3K0o1kLPq86h0AJZgrTXdVdw+tQ6kaCpayoASbMSrwVo0TPz42QePKSt+hpGD+62Vw9cIo3F91DK5Gr+CvZQFHFbgqgozYYrR/WpaobFneauGtxR9inxjw+mz3cPtPAzDtk67pBmAikGVQdTlTVTpHKOWnsRXZZ4+34MrOUjja9CmSfMdfaExjdDYj3z+mpymYaJRNkIxBKyFuATHoH2zhBNgiCYnfEUfkeLCvqVBajtvx5r9djV8zqw9WRbUdhuFwjpEYJrK6J5m2kP7xzOHZbYf/PGvj41KTd0GANK50pfSP3k97tKHnyq6RRXE6d8hxgYoH3ziS3l3TzHZkLK0Tft+3remc5ZjIynvl4nMRpdShD4gt0irBrSRvu1NdW2HjOwsONuno4f9eR7sx/8f+xytf+mygVOBq3XM3g/H7lv5+CVzcS0GlA9lkGQxgSVgGxV4iJCl7kN51qPY2AewV4IuduT0BY3F/DEqDUVjdQ8oIufPPLxMpaGR4pAy5DaexRC4KtG/TGAZlhjenvg3n2/bclBHsEvF1bi220HRYvAWpZWvs/eOLy26sTS021KBHDqumoChK+NuVSB0sYjqNWVdI5RlRs+DqX7xP/2GBZ0e4K7vzs78JwpBNSyWlkUeJum5b7eY+gRgVwzZZBG4kD7SSI4qOnfIfHhIfws4qQ8K5aesTzheHAe8nNPAKQ=="
-                    ]
-                },
-                {
-                    "data_path": "action_result.parameter.next_token",
-                    "data_type": "string",
-                    "example_values": [
-                        "AAEAAScLtB9EIaiba0LgL2F4hWqgBkCFg0QSeLYnVCkGpLYzAAAAAFze7VXLK4s6xNPd4WejllWwNr/y75b/Kwmo0uSDOIe2kjrHRL3QuLZop73oLeMKBx039ZbALnV0QwFiAioZnCi6unUpAsPlrgak7pbdbgL5LOC3ZAqvp20A1mduBKPhwWlOhNIokjnTateYrG9vkK2A/xPCZk8WT3K5BO02tUehZo+jnUsFg7a15Dtmwr9fqO4Nmc5aSdEhJ4ZzM90ShPVqeuBJpB75LVzQxeOfIhA7bI0epwmoZO0w70AhdUfQ1OPAkly0srVvTHBgN/e4Uxtg4il+KHfWKx5ei+6c3Zt4l+qvavhIPhRdzLKvDWSqM+8kRjmd0ohyklrW3QsMZSpVY0l6Xq9PNnxs6Pv+LjsoJvby5gcnpi1PNMtEDdDNF27iuaacpXU/olVQMeLRo/DghUoTyO0ml3OIqQSYndoQ4mYBSX9NDWNbZBSMgF3EZxKFS9V2DF0sRNJbzbsheR0rbosoie6YW1jBA4sk69cOh0qpqG2gqGSAfCmg1y8HLnZ1Wr6yzKTvncpOqI85UZQFNHu7JWYrrU3Mp2EmtL7fcV6bsxq/NWYDLwwGv8nU526kDEZTNmhHrf9ZFESpfi7Mf+QNK6aOraAacRhfh3iD/rlf7L/BGtOCw7surpcgo098BHzCMUDIqLAd7BP3s0AMzTmWIn+rFQD9cx1r5eNRWQC7/T8whPrbCSuN3KteBXrOlS0PEoAge7SCoMe/MJA8mwt5Bcj23tIn9k3moReDRFND5aqz9IbRq+7+YRR9zFrkjtReHMZin99BNsa6A4udzYk6KNbdS3Lph1QhkL0iqoPUwZZGhEIzghziCitB1qTecoBtuLP1FTIwpihMtnfqmDP/txnEtyd0uB6t3oXLdQ26dhNzaTbDdaJBevwbfW/6I66e0iht8SPuHAXLWYe/w94D40/Jn4rnOUN/mpRx/x0WmR5q+sGSp6zabC7bfMjT8IpwJ+IZmfVMKGHmh3aT6jMwh3ZFXMFY9zKQ0Dve1RAY7jjIxYiZWLCQYrs1j75SLScN1feG4Fwcj3WSba9vk4nBHut6nHvyeMbVpQeZT4AadQ=="
-                    ]
-                },
-                {
-                    "data_path": "action_result.summary.next_token",
-                    "data_type": "string",
-                    "example_values": [
-                        "AAEAAQoP8pKNwny+8kQ5pg8tLgPTishQwaJt6PinHvy6eXqTAAAAAFze7t4VrtPMyC/i6VU0tlo5pXuiDeQASrMxtbyrdD+/ERciVjq1dOV068NKUFqRjZbDYlDJQgGd9MRWARwvEe0hBV1W4sYc2LKtBZjBt3C4pvQR2MvE9XB2i3LrC7S4Irr1um3x6gu8CjnLQtl+8Fk1D+pRdgVTcv01thnp53TnqybCieHIl1HAEZJfYpB6NCzZgXYRuMM/cajNHeLpqgRoekRmM7wyanKYGq2094L/N0oOITdWa7clH4g75gT4Hrqz9QT2fQbhikiJhxvY5nmDoTbj33OB0eXXIoUPFl3MrL1Jp9Y4jGXQ7s2Q7QLjOAdifx7SQ3kvVT1YORw7G/WjJzjG3bayaTy5DCCilgZblrnCJoM3K0o1kLPq86h0AJZgrTXdVdw+tQ6kaCpayoASbMSrwVo0TPz42QePKSt+hpGD+62Vw9cIo3F91DK5Gr+CvZQFHFbgqgozYYrR/WpaobFneauGtxR9inxjw+mz3cPtPAzDtk67pBmAikGVQdTlTVTpHKOWnsRXZZ4+34MrOUjja9CmSfMdfaExjdDYj3z+mpymYaJRNkIxBKyFuATHoH2zhBNgiCYnfEUfkeLCvqVBajtvx5r9djV8zqw9WRbUdhuFwjpEYJrK6J5m2kP7xzOHZbYf/PGvj41KTd0GANK50pfSP3k97tKHnyq6RRXE6d8hxgYoH3ziS3l3TzHZkLK0Tft+3remc5ZjIynvl4nMRpdShD4gt0irBrSRvu1NdW2HjOwsONuno4f9eR7sx/8f+xytf+mygVOBq3XM3g/H7lv5+CVzcS0GlA9lkGQxgSVgGxV4iJCl7kN51qPY2AewV4IuduT0BY3F/DEqDUVjdQ8oIufPPLxMpaGR4pAy5DaexRC4KtG/TGAZlhjenvg3n2/bclBHsEvF1bi220HRYvAWpZWvs/eOLy26sTS021KBHDqumoChK+NuVSB0sYjqNWVdI5RlRs+DqX7xP/2GBZ0e4K7vzs78JwpBNSyWlkUeJum5b7eY+gRgVwzZZBG4kD7SSI4qOnfIfHhIfws4qQ8K5aesTzheHAe8nNPAKQ=="
+                        "8fbd52dd-ddc9-4206-a49f-810ec50e929e"
+                    ],
+                    "contains": [
+                        "aws command id"
                     ]
                 }
             ],
