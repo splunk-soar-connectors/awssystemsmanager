@@ -221,7 +221,10 @@ class AwsSystemsManagerConnector(BaseConnector):
         document_name = param['document_name']
         document_hash = param['document_hash']
         document_hash_type = param['document_hash_type']
-        parameters = json.loads(param['parameters'])
+        try:
+            parameters = json.loads(param['parameters'])
+        except Exception as e:
+            return RetVal(action_result.set_status(phantom.APP_ERROR, u"Invalid JSON for Parameters. Error: {0}".format(str(e))), None)
         working_directory = param.get('working_directory')
         timeout_seconds = param.get('timeout_seconds')
         comment = param.get('comment')

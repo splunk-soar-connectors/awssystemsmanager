@@ -528,7 +528,7 @@
                     "order": 3
                 },
                 "parameters": {
-                    "description": "The required and optional parameters specified in the document being run. Example: {\"commands\": [\"ls\"]}",
+                    "description": "JSON object. The required and optional parameters specified in the document being run. Example: {\"commands\": [\"ls\"]}",
                     "data_type": "string",
                     "required": true,
                     "primary": false,
