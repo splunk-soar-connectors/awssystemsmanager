@@ -278,6 +278,8 @@ class AwsSystemsManagerConnector(BaseConnector):
             command_id = param.get('command_id')
             instance_id = param.get('instance_id')
             max_results = param.get('max_results')
+            if max_results == 0:
+                return action_result.set_status(phantom.APP_ERROR, u"MaxResults parameter must be in valid range 1-50")
             next_token = param.get('next_token')
 
             args = {}
