@@ -903,7 +903,7 @@
             "description": "Lists the commands ran by users of the AWS account",
             "type": "investigate",
             "identifier": "list_commands",
-            "read_only": false,
+            "read_only": true,
             "parameters": {
                 "command_id": {
                     "description": "If provided, lists only the specified command",
@@ -1257,14 +1257,17 @@
             "description": "Get information about a parameter by using the parameter name",
             "type": "investigate",
             "identifier": "get_parameter",
-            "read_only": false,
+            "read_only": true,
             "parameters": {
                 "name": {
                     "description": "The name of the parameter that you want to query",
                     "data_type": "string",
-                    "primary": false,
+                    "primary": true,
                     "required": true,
-                    "order": 0
+                    "order": 0,
+                    "contains": [
+                        "aws parameter name"
+                    ]
                 },
                 "with_decryption": {
                     "description": "Check to decrypt values of secure string parameters. This flag is ignored for String and StringList parameter types",
@@ -1289,7 +1292,10 @@
                         "matt-test-parameter"
                     ],
                     "column_name": "name",
-                    "column_order": "0"
+                    "column_order": "0",
+                    "contains": [
+                        "aws parameter name"
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.Parameter.LastModifiedDate",
@@ -1403,6 +1409,9 @@
                     "data_type": "string",
                     "example_values": [
                         "matt-test-parameter"
+                    ],
+                    "contains": [
+                        "aws parameter name"
                     ]
                 },
                 {
@@ -1443,9 +1452,12 @@
                 "name": {
                     "description": "The fully qualified name of the parameter that you want to add to the system. Please refer to app documentation page for naming restrictions",
                     "data_type": "string",
-                    "primary": false,
+                    "primary": true,
                     "required": true,
-                    "order": 0
+                    "order": 0,
+                    "contains": [
+                        "aws parameter name"
+                    ]
                 },
                 "description": {
                     "description": "Information about the parameter that you want to add to the system. Optional but recommended",
@@ -1576,7 +1588,10 @@
                         "phantom"
                     ],
                     "column_name": "name",
-                    "column_order": "0"
+                    "column_order": "0",
+                    "contains": [
+                        "aws parameter name"
+                    ]
                 },
                 {
                     "data_path": "action_result.parameter.value",
