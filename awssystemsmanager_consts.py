@@ -14,6 +14,7 @@ SSM_REGION_DICT = {
         "US East (Ohio)": "us-east-2",
         "US West (N. California)": "us-west-1",
         "US West (Oregon)": "us-west-2",
+        "Asia Pacific (Hong Kong)": "ap-east-1"
         "Asia Pacific (Mumbai)": "ap-south-1",
         "Asia Pacific (Seoul)": "ap-northeast-2",
         "Asia Pacific (Singapore)": "ap-southeast-1",
