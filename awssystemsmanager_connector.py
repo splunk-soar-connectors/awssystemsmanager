@@ -203,7 +203,7 @@ class AwsSystemsManagerConnector(BaseConnector):
 
         # Add a dictionary that is made up of the most important values from data into the summary
         summary = action_result.update_summary({})
-        summary['status'] = "Successfully executed commands"
+        summary['status'] = "Successfully sent command(s)"
 
         return action_result.set_status(phantom.APP_SUCCESS)
 
@@ -260,7 +260,7 @@ class AwsSystemsManagerConnector(BaseConnector):
 
         # Add a dictionary that is made up of the most important values from data into the summary
         summary = action_result.update_summary({})
-        summary['status'] = "Successfully executed document"
+        summary['status'] = "Successfully sent command(s)"
 
         return action_result.set_status(phantom.APP_SUCCESS)
 
