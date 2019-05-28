@@ -314,6 +314,58 @@ class AwsSystemsManagerConnector(BaseConnector):
                 summary['num_commands'] = num_commands
                 return action_result.set_status(phantom.APP_SUCCESS)
 
+    def _handle_list_documents(self, param):
+
+        self.save_progress("In action handler for: {0}".format(self.get_action_identifier()))
+
+        # Add an action result object to self (BaseConnector) to represent the action for this param
+        action_result = self.add_action_result(ActionResult(dict(param)))
+
+        if not self._create_client(action_result):
+            return action_result.get_status()
+
+        num_documents = 0
+
+        # TODO gotta figure out how to filter multiple key/values
+
+        while True:
+
+            filter = param.get('filter')
+            filter_value = param.get('filter_value')
+            max_results = param.get('max_results')
+            if max_results == 0:
+                return action_result.set_status(phantom.APP_ERROR, u"MaxResults parameter must be in valid range 1-50")
+            next_token = param.get('next_token')
+
+            args = {}
+            if command_id:
+                args['CommandId'] = command_id
+            if instance_id:
+                args['InstanceId'] = instance_id
+            if max_results:
+                args['MaxResults'] = max_results
+            if next_token:
+                args['NextToken'] = next_token
+
+            # make rest call
+            ret_val, response = self._make_boto_call(action_result, 'list_documents', **args)
+
+            if (phantom.is_fail(ret_val)):
+                return action_result.get_status()
+
+            # Add the response into the data section
+            action_result.add_data(response)
+            next_token = response.get('NextToken')
+            num_commands = num_commands + len(response['Commands'])
+
+            if next_token and max_results is None:
+                param['next_token'] = response['NextToken']
+            else:
+                # Add a dictionary that is made up of the most important values from data into the summary
+                summary = action_result.update_summary({})
+                summary['num_commands'] = num_commands
+                return action_result.set_status(phantom.APP_SUCCESS)
+
     def _handle_get_parameter(self, param):
 
         self.save_progress("In action handler for: {0}".format(self.get_action_identifier()))
@@ -408,6 +460,9 @@ class AwsSystemsManagerConnector(BaseConnector):
 
         elif action_id == 'list_commands':
             ret_val = self._handle_list_commands(param)
+
+        elif action_id == 'list_documents':
+            ret_val = self._handle_list_documents(param)
 
         elif action_id == 'execute_program':
             ret_val = self._handle_send_command(param)

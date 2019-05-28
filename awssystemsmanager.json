@@ -1253,6 +1253,48 @@
             "versions": "EQ(*)"
         },
         {
+            "action": "list documents",
+            "description": "Lists one or more of the Systems Manager documents",
+            "type": "investigate",
+            "identifier": "list_documents",
+            "read_only": true,
+            "parameters": {
+                "filter": {
+                    "description": "If provided, lists only the specified command",
+                    "data_type": "string",
+                    "primary": true,
+                    "required": false,
+                    "order": 0,
+                    "contains": [
+                        "aws command id"
+                    ]
+                },
+                "filter_value": {
+                    "description": "Lists commands issued against this instance ID",
+                    "data_type": "string",
+                    "primary": true,
+                    "required": false,
+                    "order": 1,
+                    "contains": [
+                        "aws instance id"
+                    ]
+                },
+                "max_results": {
+                    "description": "The maximum number of items to return for this call",
+                    "data_type": "numeric",
+                    "primary": false,
+                    "required": false,
+                    "order": 2
+                }
+            },
+            "output": [
+            ],
+            "render": {
+                "type": "table"
+            },
+            "versions": "EQ(*)"
+        },
+        {
             "action": "get parameter",
             "description": "Get information about a parameter by using the parameter name",
             "type": "investigate",
