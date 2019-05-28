@@ -330,18 +330,31 @@ class AwsSystemsManagerConnector(BaseConnector):
 
         while True:
 
-            filter = param.get('filter')
-            filter_value = param.get('filter_value')
+            name = param.get('name')
+            owner = param.get('owner')
+            platform_type = param.get('platform_type')
+            document_type = param.get('document_type')
             max_results = param.get('max_results')
             if max_results == 0:
                 return action_result.set_status(phantom.APP_ERROR, u"MaxResults parameter must be in valid range 1-50")
             next_token = param.get('next_token')
 
             args = {}
-            if command_id:
-                args['CommandId'] = command_id
-            if instance_id:
-                args['InstanceId'] = instance_id
+            if name or owner or platform_type or document_type:
+                args['DocumentFilterList'] = []
+
+            if name:
+                name_obj = {'key': 'Name', 'value': name}
+                args['DocumentFilterList'].append(name_obj)
+            if owner:
+                owner_obj = {'key': 'Owner', 'value': owner}
+                args['DocumentFilterList'].append(owner_obj)
+            if platform_type:
+                platform_obj = {'key': 'PlatformTypes', 'value': platform_type}
+                args['DocumentFilterList'].append(platform_obj)
+            if document_type:
+                document_obj = {'key': 'DocumentType', 'value': document_type}
+                args['DocumentFilterList'].append(document_obj)
             if max_results:
                 args['MaxResults'] = max_results
             if next_token:
@@ -356,14 +369,14 @@ class AwsSystemsManagerConnector(BaseConnector):
             # Add the response into the data section
             action_result.add_data(response)
             next_token = response.get('NextToken')
-            num_commands = num_commands + len(response['Commands'])
+            num_documents = num_documents + len(response['DocumentIdentifiers'])
 
             if next_token and max_results is None:
                 param['next_token'] = response['NextToken']
             else:
                 # Add a dictionary that is made up of the most important values from data into the summary
                 summary = action_result.update_summary({})
-                summary['num_commands'] = num_commands
+                summary['num_documents'] = num_documents
                 return action_result.set_status(phantom.APP_SUCCESS)
 
     def _handle_get_parameter(self, param):
