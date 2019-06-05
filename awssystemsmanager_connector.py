@@ -8,6 +8,7 @@
 import phantom.app as phantom
 from phantom.base_connector import BaseConnector
 from phantom.action_result import ActionResult
+from phantom.vault import Vault
 
 # Usage of the consts file is recommended
 from awssystemsmanager_consts import *
@@ -18,6 +19,10 @@ import botocore.response as br
 import botocore.paginate as bp
 import requests
 import json
+import os
+import tempfile
+import time
+import base64
 # import base64
 
 
@@ -100,6 +105,45 @@ class AwsSystemsManagerConnector(BaseConnector):
 
         return phantom.APP_SUCCESS, self._sanitize_data(resp_json)
 
+    def _sanatize_dates(self, cur_obj):
+
+        try:
+            json.dumps(cur_obj)
+            return cur_obj
+        except:
+            pass
+
+        if isinstance(cur_obj, dict):
+            new_dict = {}
+            for k, v in cur_obj.iteritems():
+                new_dict[k] = self._sanatize_dates(v)
+            return new_dict
+
+        if isinstance(cur_obj, list):
+            new_list = []
+            for v in cur_obj:
+                new_list.append(self._sanatize_dates(v))
+            return new_list
+
+        if isinstance(cur_obj, datetime):
+            return cur_obj.strftime("%Y-%m-%d %H:%M:%S")
+
+        return cur_obj
+
+    def _make_s3_boto_call(self, action_result, method, **kwargs):
+
+        try:
+            boto_func = getattr(self._client, method)
+        except AttributeError:
+            return RetVal(action_result.set_status(phantom.APP_ERROR, "Invalid method: {0}".format(method)), None)
+
+        try:
+            resp_json = boto_func(**kwargs)
+        except Exception as e:
+            return RetVal(action_result.set_status(phantom.APP_ERROR, 'boto3 call to S3 failed', e), None)
+
+        return phantom.APP_SUCCESS, resp_json
+
     def _create_client(self, action_result):
 
         boto_config = None
@@ -125,6 +169,118 @@ class AwsSystemsManagerConnector(BaseConnector):
             return action_result.set_status(phantom.APP_ERROR, "Could not create boto3 client: {0}".format(e))
 
         return phantom.APP_SUCCESS
+
+    def _create_s3_client(self, action_result):
+
+        boto_config = None
+        if self._proxy:
+            boto_config = Config(proxies=self._proxy)
+
+        try:
+
+            if self._access_key and self._secret_key:
+
+                self.debug_print("Creating boto3 client with API keys")
+
+                self._client = client(
+                        's3',
+                        region_name=self._region,
+                        aws_access_key_id=self._access_key,
+                        aws_secret_access_key=self._secret_key,
+                        config=boto_config)
+
+            else:
+
+                self.debug_print("Creating boto3 client without API keys")
+
+                self._client = client(
+                        's3',
+                        region_name=self._region,
+                        config=boto_config)
+
+        except Exception as e:
+            return self.set_status(phantom.APP_ERROR, "Could not create boto3 client: {0}".format(e))
+
+        return phantom.APP_SUCCESS
+
+    def _get_s3_bucket(self, action_result, output_s3_bucket_name):
+
+        self._create_s3_client(action_result)
+
+        ret_val, resp_json = self._make_boto_call(action_result, 'get_bucket_accelerate_configuration', Bucket=output_s3_bucket_name)
+
+        return ret_val
+
+    def _create_s3_bucket(self, action_result, output_s3_bucket_name):
+
+        self._create_s3_client(action_result)
+
+        location = {'LocationConstraint': SSM_REGION_DICT[self.get_config()['region']]}
+
+        if output_s3_bucket_name is None:
+            output_s3_bucket_name = 'ssm-phantom-app'
+
+        # boto3 bug
+        if location['LocationConstraint'] == 'us-east-1':
+            ret_val, resp_json = self._make_boto_call(action_result, 'create_bucket', Bucket=output_s3_bucket_name)
+        else:
+            ret_val, resp_json = self._make_boto_call(action_result, 'create_bucket', Bucket=output_s3_bucket_name, CreateBucketConfiguration=location)
+
+        return ret_val, output_s3_bucket_name
+
+    def _get_s3_object(self, action_result, output_s3_bucket_name, output_s3_object_key, save_output_to_vault, file_name):
+
+        self._create_s3_client(action_result)
+
+        ret_val, resp_json = self._make_s3_boto_call(action_result, 'get_object', Bucket=output_s3_bucket_name, Key=output_s3_object_key)
+
+        if (phantom.is_fail(ret_val)):
+            return ret_val
+
+        try:
+            file_data = resp_json.pop('Body').read()
+            file_data = base64.b64decode(file_data)
+        except:
+            return action_result.set_status(phantom.APP_ERROR, "Could not retrieve object body from boto response")
+
+        result_json = {}
+
+        result_json['output'] = file_data
+
+        if save_output_to_vault:
+            if hasattr(Vault, 'get_vault_tmp_dir'):
+                vault_path = Vault.get_vault_tmp_dir()
+            else:
+                vault_path = '/vault/tmp/'
+
+            file_desc, file_path = tempfile.mkstemp(dir=vault_path)
+            outfile = open(file_path, 'w')
+            outfile.write(file_data)
+            outfile.close()
+            os.close(file_desc)
+
+            try:
+                # This conditional means 'get file' action has been called. This updates the correct filename that is written into the vault
+                if file_name:
+                    vault_ret = Vault.add_attachment(file_path, self.get_container_id(), file_name)
+                    result_json['filename'] = file_name
+                    # We do not need to return output for 'get file' action
+                    result_json.pop('output', None)
+                # This conditional means 'execute program' action has been called. This will name the file as either 'stdout' or 'stderr' into the vault
+                else:
+                    vault_ret = Vault.add_attachment(file_path, self.get_container_id(), os.path.basename(output_s3_object_key))
+                    result_json['filename'] = os.path.basename(output_s3_object_key)
+            except Exception as e:
+                return action_result.set_status(phantom.APP_ERROR, "Could not file to vault: {0}".format(e))
+
+            if not vault_ret.get('succeeded'):
+                return action_result.set_status(phantom.APP_ERROR, "Could not save file to vault: {0}".format(vault_ret.get('message', "Unknown Error")))
+            vault_id = vault_ret[phantom.APP_JSON_HASH]
+            result_json['vault_id'] = vault_id
+            result_json['s3_object_key'] = output_s3_object_key
+            action_result.set_summary({"created_vault_id": vault_id})
+
+        return ret_val, result_json
 
     def _handle_test_connectivity(self, param):
 
@@ -153,32 +309,47 @@ class AwsSystemsManagerConnector(BaseConnector):
 
         # Add an action result object to self (BaseConnector) to represent the action for this param
         action_result = self.add_action_result(ActionResult(dict(param)))
-
-        if not self._create_client(action_result):
-            return action_result.get_status()
-
-        instance_ids = param['instance_ids'].replace(" ", "").split(",")
+        instance_id = param['instance_id']
         platform_type = param['platform_type']
         if platform_type == 'Windows':
             document_name = POWERSHELL_DOCUMENT
             document_hash = POWERSHELL_DOC_HASH
+            object_path = 'awsrunPowerShellScript/0.awsrunPowerShellScript/stdout'
         else:
             document_name = LINUX_DOCUMENT
             document_hash = LINUX_DOC_HASH
-        commands = param['commands'].split(",")
+            object_path = 'awsrunShellScript/0.awsrunShellScript/stdout'
+        # If running get_file, 'cat' the file into an S3 bucket
+        if self.get_action_identifier() == 'get_file':
+            file_path = param['file_path'].replace('\\', '/')
+            file_name = file_path.split('/')[-1]
+            if platform_type == 'Windows':
+                commands = '[Convert]::ToBase64String([IO.File]::ReadAllBytes("{}"))'.format(file_path)
+            else:
+                commands = 'cat ' + file_path + ' | base64'
+            save_output_to_vault = True
+        else:
+            commands = param['commands']
+            file_name = None
+            save_output_to_vault = param.get('save_output_to_vault')
         working_directory = param.get('working_directory')
         timeout_seconds = param.get('timeout_seconds')
         comment = param.get('comment')
         output_s3_bucket_name = param.get('output_s3_bucket_name')
-        output_s3_key_prefix = param.get('output_s3_key_prefix')
+        # Create S3 bucket to store command output if it does not already exist
+        if self._get_s3_bucket(action_result, output_s3_bucket_name) is False:
+            ret_val, output_s3_bucket_name = self._create_s3_bucket(action_result, output_s3_bucket_name)
+            if ret_val is False:
+                return action_result.set_status(phantom.APP_ERROR, "Failed to create S3 bucket")
 
         args = {
-            'InstanceIds': instance_ids,
+            'InstanceIds': [instance_id],
             'DocumentName': document_name,
             'DocumentHash': document_hash,
             'DocumentHashType': 'Sha256',
+            'OutputS3BucketName': output_s3_bucket_name,
             'Parameters': {
-                'commands': commands
+                'commands': [commands]
             }
         }
         if working_directory:
@@ -187,23 +358,47 @@ class AwsSystemsManagerConnector(BaseConnector):
             args['TimeoutSeconds'] = timeout_seconds
         if comment:
             args['Comment'] = comment
-        if output_s3_bucket_name:
-            args['OutputS3BucketName'] = output_s3_bucket_name
-        if output_s3_key_prefix:
-            args['OutputS3KeyPrefix'] = output_s3_key_prefix
 
-        # make rest call
+        if not self._create_client(action_result):
+            return action_result.get_status()
+
+        # Executes the shell program via SSM boto call
         ret_val, response = self._make_boto_call(action_result, 'send_command', **args)
 
         if (phantom.is_fail(ret_val)):
             return action_result.get_status()
 
+        result_json = {"Command": response['Command']}
+        result_json['ResponseMetadata'] = response['ResponseMetadata']
+
+        output_s3_object_key = response['Command']['CommandId'] + '/' + instance_id + '/' + object_path
+
+        # Give time for command output to be written to S3 bucket
+        time.sleep(10)
+
+        try:
+            ret_val, resp_json = self._get_s3_object(action_result, output_s3_bucket_name, output_s3_object_key, save_output_to_vault, file_name)
+        except Exception:
+            # Look for stderr file if stdout file was not found. If this is get_file action, then action fails with a no file found message.
+            try:
+                if self.get_action_identifier() == 'get_file':
+                    return action_result.set_status(phantom.APP_ERROR, "{}: No such file found. Please check full file path (include filename)".format(file_path))
+                output_s3_object_key = output_s3_object_key.replace('stdout', 'stderr')
+                ret_val, resp_json = self._get_s3_object(action_result, output_s3_bucket_name, output_s3_object_key, save_output_to_vault, file_name)
+            except Exception:
+                return action_result.set_status(phantom.APP_ERROR, "Failed to get S3 object")
+
+        result_json["File"] = resp_json
+
         # Add the response into the data section
-        action_result.add_data(response)
+        action_result.add_data(result_json)
 
         # Add a dictionary that is made up of the most important values from data into the summary
         summary = action_result.update_summary({})
-        summary['status'] = "Successfully sent command(s)"
+        if self.get_action_identifier() == 'get_file':
+            summary['status'] = "Successfully downloaded file into the vault"
+        else:
+            summary['status'] = "Successfully executed program"
 
         return action_result.set_status(phantom.APP_SUCCESS)
 
@@ -217,7 +412,7 @@ class AwsSystemsManagerConnector(BaseConnector):
         if not self._create_client(action_result):
             return action_result.get_status()
 
-        instance_ids = param['instance_ids'].replace(" ", "").split(",")
+        instance_id = param['instance_id']
         document_name = param['document_name']
         document_hash = param['document_hash']
         document_hash_type = param['document_hash_type']
@@ -232,7 +427,7 @@ class AwsSystemsManagerConnector(BaseConnector):
         output_s3_key_prefix = param.get('output_s3_key_prefix')
 
         args = {
-            'InstanceIds': instance_ids,
+            'InstanceIds': [instance_id],
             'DocumentName': document_name,
             'DocumentHash': document_hash,
             'DocumentHashType': document_hash_type,
@@ -260,7 +455,7 @@ class AwsSystemsManagerConnector(BaseConnector):
 
         # Add a dictionary that is made up of the most important values from data into the summary
         summary = action_result.update_summary({})
-        summary['status'] = "Successfully sent command(s)"
+        summary['status'] = "Successfully sent command"
 
         return action_result.set_status(phantom.APP_SUCCESS)
 
@@ -362,14 +557,23 @@ class AwsSystemsManagerConnector(BaseConnector):
 
             # make rest call
             ret_val, response = self._make_boto_call(action_result, 'list_documents', **args)
+            next_token = response.get('NextToken')
 
             if (phantom.is_fail(ret_val)):
                 return action_result.get_status()
 
             # Add the response into the data section
-            action_result.add_data(response)
-            next_token = response.get('NextToken')
-            num_documents = num_documents + len(response['DocumentIdentifiers'])
+            if max_results is not None:
+                upper_bound = max_results - num_documents
+                if upper_bound > len(response['DocumentIdentifiers']):
+                    action_result.add_data(response)
+                    num_documents = num_documents + len(response['DocumentIdentifiers'])
+                else:
+                    action_result.add_data(response['DocumentIdentifiers'][0:upper_bound])
+                    num_documents = num_documents + len(response['DocumentIdentifiers'][0:upper_bound])
+            else:
+                action_result.add_data(response)
+                num_documents = num_documents + len(response['DocumentIdentifiers'])
 
             if next_token and max_results is None:
                 param['next_token'] = response['NextToken']
@@ -478,6 +682,9 @@ class AwsSystemsManagerConnector(BaseConnector):
             ret_val = self._handle_list_documents(param)
 
         elif action_id == 'execute_program':
+            ret_val = self._handle_send_command(param)
+
+        elif action_id == 'get_file':
             ret_val = self._handle_send_command(param)
 
         elif action_id == 'run_document':

@@ -100,17 +100,16 @@
         },
         {
             "action": "execute program",
-            "description": "Runs shell script command(s) on one or more managed instances",
+            "description": "Runs shell script command on one or more managed instances",
             "type": "generic",
             "identifier": "execute_program",
             "read_only": false,
             "parameters": {
-                "instance_ids": {
-                    "description": "Comma (,) separated instance IDs where the command should run. You can specify a maximum of 50 IDs",
+                "instance_id": {
+                    "description": "The AWS Instance ID of where the command will run",
                     "data_type": "string",
                     "primary": true,
                     "required": true,
-                    "allow_list": true,
                     "order": 0,
                     "contains": [
                         "aws instance id"
@@ -128,7 +127,7 @@
                     "order": 1
                 },
                 "commands": {
-                    "description": "Comma (,) separated commands to be executed on the instance(s)",
+                    "description": "Single command to be executed on the instance",
                     "data_type": "string",
                     "required": true,
                     "allow_list": true,
@@ -157,16 +156,17 @@
                     "order": 5
                 },
                 "output_s3_bucket_name": {
-                    "description": "The name of the S3 bucket where command execution responses should be stored",
+                    "description": "The name of the existing S3 bucket where command execution responses should be stored",
                     "data_type": "string",
                     "required": false,
                     "primary": false,
                     "order": 6
                 },
-                "output_s3_key_prefix": {
-                    "description": "The directory structure within the S3 bucket where the responses should be stored",
-                    "data_type": "string",
+                "save_output_to_vault": {
+                    "description": "Store the output of the command into the vault",
+                    "data_type": "boolean",
                     "required": false,
+                    "default": false,
                     "primary": false,
                     "order": 7
                 }
@@ -176,7 +176,8 @@
                     "data_path": "action_result.status",
                     "data_type": "string",
                     "example_values": [
-                        "success"
+                        "success",
+                        "failed"
                     ]
                 },
                 {
@@ -190,7 +191,7 @@
                     "data_path": "action_result.data.*.Command.Parameters.commands",
                     "data_type": "string",
                     "example_values": [
-                        "pwd, ls"
+                        "pwd"
                     ]
                 },
                 {
@@ -204,7 +205,8 @@
                     "data_path": "action_result.data.*.Command.DocumentName",
                     "data_type": "string",
                     "example_values": [
-                        "AWS-RunShellScript"
+                        "AWS-RunShellScript",
+                        "AWS-RunPowerShellScript"
                     ],
                     "column_name": "document name",
                     "column_order": "2",
@@ -216,12 +218,15 @@
                     "data_path": "action_result.data.*.Command.OutputS3BucketName",
                     "data_type": "string",
                     "example_values": [
-                        "ssm-app-phantom"
+                        "ssm-phantom-app"
                     ]
                 },
                 {
                     "data_path": "action_result.data.*.Command.OutputS3KeyPrefix",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        ""
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.Command.StatusDetails",
@@ -234,7 +239,8 @@
                     "data_path": "action_result.data.*.Command.InstanceIds",
                     "data_type": "string",
                     "example_values": [
-                        "i-0ea1454477403286d"
+                        "i-0ea1454477403286d",
+                        "i-0274f8f32148f539f"
                     ],
                     "column_name": "instance id",
                     "column_order": "1",
@@ -258,17 +264,24 @@
                 },
                 {
                     "data_path": "action_result.data.*.Command.NotificationConfig.NotificationArn",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        ""
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.Command.NotificationConfig.NotificationType",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        ""
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.Command.RequestedDateTime",
                     "data_type": "string",
                     "example_values": [
-                        "2019-05-14 15:16:33"
+                        "2019-05-14 15:16:33",
+                        "2019-06-03 13:15:13"
                     ]
                 },
                 {
@@ -287,11 +300,17 @@
                 },
                 {
                     "data_path": "action_result.data.*.Command.ServiceRole",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        ""
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.Command.CloudWatchOutputConfig.CloudWatchLogGroupName",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        ""
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.Command.CloudWatchOutputConfig.CloudWatchOutputEnabled",
@@ -310,20 +329,25 @@
                 },
                 {
                     "data_path": "action_result.data.*.Command.DocumentVersion",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        ""
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.Command.Comment",
                     "data_type": "string",
                     "example_values": [
-                        "Checking contents of parent directory"
+                        "Checking contents of parent directory",
+                        ""
                     ]
                 },
                 {
                     "data_path": "action_result.data.*.Command.ExpiresAfter",
                     "data_type": "string",
                     "example_values": [
-                        "2019-05-14 16:17:03"
+                        "2019-05-14 16:17:03",
+                        "2019-06-03 15:15:13"
                     ]
                 },
                 {
@@ -337,10 +361,11 @@
                     "data_path": "action_result.data.*.Command.CommandId",
                     "data_type": "string",
                     "example_values": [
-                        "88e37730-5fa8-48f7-8135-26d19d77d75c"
+                        "88e37730-5fa8-48f7-8135-26d19d77d75c",
+                        "38c9d6fa-35db-42bf-b694-468bdc9c701c"
                     ],
                     "column_name": "command id",
-                    "column_order": "0",
+                    "column_order": "3",
                     "contains": [
                         "aws command id"
                     ]
@@ -363,28 +388,32 @@
                     "data_path": "action_result.data.*.ResponseMetadata.RequestId",
                     "data_type": "string",
                     "example_values": [
-                        "2a92b645-b13f-4df2-862a-3ed169e20299"
+                        "2a92b645-b13f-4df2-862a-3ed169e20299",
+                        "2e090e5f-d76c-4cab-958e-c97582ad7424"
                     ]
                 },
                 {
                     "data_path": "action_result.data.*.ResponseMetadata.HTTPHeaders.date",
                     "data_type": "string",
                     "example_values": [
-                        "Tue, 14 May 2019 22:16:32 GMT"
+                        "Tue, 14 May 2019 22:16:32 GMT",
+                        "Mon, 03 Jun 2019 20:15:13 GMT"
                     ]
                 },
                 {
                     "data_path": "action_result.data.*.ResponseMetadata.HTTPHeaders.x-amzn-requestid",
                     "data_type": "string",
                     "example_values": [
-                        "2a92b645-b13f-4df2-862a-3ed169e20299"
+                        "2a92b645-b13f-4df2-862a-3ed169e20299",
+                        "2e090e5f-d76c-4cab-958e-c97582ad7424"
                     ]
                 },
                 {
                     "data_path": "action_result.data.*.ResponseMetadata.HTTPHeaders.content-length",
                     "data_type": "string",
                     "example_values": [
-                        "796"
+                        "796",
+                        "728"
                     ]
                 },
                 {
@@ -398,7 +427,9 @@
                     "data_path": "action_result.message",
                     "data_type": "string",
                     "example_values": [
-                        "Status: Successfully executed commands"
+                        "Status: Successfully executed commands",
+                        "Status: Successfully sent command, Created vault id: 6f3832d6a9dd6e41533f9648052c07f2379ec6fa",
+                        "boto3 call to S3 failed. Error string: 'An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist.'"
                     ]
                 },
                 {
@@ -412,7 +443,9 @@
                     "data_path": "action_result.parameter.commands",
                     "data_type": "string",
                     "example_values": [
-                        "pwd, ls"
+                        "pwd, ls",
+                        "pwd",
+                        "cat file.txt"
                     ]
                 },
                 {
@@ -423,10 +456,11 @@
                     ]
                 },
                 {
-                    "data_path": "action_result.parameter.instance_ids",
+                    "data_path": "action_result.parameter.instance_id",
                     "data_type": "string",
                     "example_values": [
-                        "i-0ea1454477403286d"
+                        "i-0ea1454477403286d",
+                        "i-0274f8f32148f539f"
                     ],
                     "contains": [
                         "aws instance id"
@@ -436,14 +470,16 @@
                     "data_path": "action_result.parameter.platform_type",
                     "data_type": "string",
                     "example_values": [
-                        "Linux"
+                        "Linux",
+                        "Windows"
                     ]
                 },
                 {
                     "data_path": "action_result.parameter.working_directory",
                     "data_type": "string",
                     "example_values": [
-                        "/usr/bin"
+                        "/usr/bin",
+                        "/Users/Administrator/Desktop/"
                     ]
                 },
                 {
@@ -454,30 +490,117 @@
                     ]
                 },
                 {
-                    "data_path": "action_result.parameter.output_s3_key_prefix",
-                    "data_type": "string"
-                },
-                {
                     "data_path": "action_result.summary.status",
                     "data_type": "string",
                     "example_values": [
-                        "Successfully executed commands"
+                        "Successfully executed commands",
+                        "Successfully sent command"
                     ]
                 },
                 {
                     "data_path": "summary.total_objects",
                     "data_type": "numeric",
                     "example_values": [
-                        1
+                        1,
+                        2
                     ]
                 },
                 {
                     "data_path": "summary.total_objects_successful",
                     "data_type": "numeric",
                     "example_values": [
-                        1
+                        1,
+                        0
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.File.output",
+                    "data_type": "string",
+                    "example_values": [
+                        "\r\nPath               \r\n----               \r\nC:\\Windows\\system32\r\n\r\n\r\n"
+                    ],
+                    "column_name": "command output",
+                    "column_order": "4"
+                },
+                {
+                    "data_path": "action_result.data.*.File.vault_id",
+                    "data_type": "string",
+                    "example_values": [
+                        "6f3832d6a9dd6e41533f9648052c07f2379ec6fa"
+                    ],
+                    "contains": [
+                        "sha1",
+                        "vault id"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.File.filename",
+                    "data_type": "string",
+                    "example_values": [
+                        "stdout"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.save_output_to_vault",
+                    "data_type": "boolean",
+                    "example_values": [
+                        true,
+                        false
+                    ]
+                },
+                {
+                    "data_path": "action_result.summary.created_vault_id",
+                    "data_type": "string",
+                    "example_values": [
+                        "6f3832d6a9dd6e41533f9648052c07f2379ec6fa"
+                    ],
+                    "contains": [
+                        "sha1"
                     ]
                 }
+            ],
+            "render": {
+                "type": "table"
+            },
+            "versions": "EQ(*)"
+        },
+        {
+            "action": "get file",
+            "description": "Retrieve a file from an AWS instance and save it to the vault",
+            "type": "generic",
+            "identifier": "get_file",
+            "read_only": false,
+            "parameters": {
+                "instance_id": {
+                    "description": "The AWS Instance ID of where to grab the file from",
+                    "data_type": "string",
+                    "primary": true,
+                    "required": true,
+                    "order": 0,
+                    "contains": [
+                        "aws instance id"
+                    ]
+                },
+                "platform_type": {
+                    "description": "The operating system of the instance",
+                    "data_type": "string",
+                    "primary": false,
+                    "required": true,
+                    "value_list": [
+                        "Linux",
+                        "Windows"
+                    ],
+                    "order": 1
+                },
+                "file_path": {
+                    "description": "Full path of the file to download (include filename)",
+                    "data_type": "string",
+                    "required": true,
+                    "primary": false,
+                    "order": 2
+                }
+            },
+            "output": [
             ],
             "render": {
                 "type": "table"
@@ -491,12 +614,11 @@
             "identifier": "run_document",
             "read_only": false,
             "parameters": {
-                "instance_ids": {
-                    "description": "Comma (,) separated instance IDs where the command should run. You can specify a maximum of 50 IDs",
+                "instance_id": {
+                    "description": "The AWS Instance ID of where the command will run",
                     "data_type": "string",
                     "primary": true,
                     "required": true,
-                    "allow_list": true,
                     "order": 0,
                     "contains": [
                         "aws instance id"
@@ -568,13 +690,6 @@
                     "required": false,
                     "primary": false,
                     "order": 7
-                },
-                "output_s3_key_prefix": {
-                    "description": "The directory structure within the S3 bucket where the responses should be stored",
-                    "data_type": "string",
-                    "required": false,
-                    "primary": false,
-                    "order": 8
                 }
             },
             "output": [
@@ -829,7 +944,7 @@
                     ]
                 },
                 {
-                    "data_path": "action_result.parameter.instance_ids",
+                    "data_path": "action_result.parameter.instance_id",
                     "data_type": "string",
                     "example_values": [
                         "i-0ea1454477403286d"
@@ -858,10 +973,6 @@
                     "example_values": [
                         "ssm-app-phantom"
                     ]
-                },
-                {
-                    "data_path": "action_result.parameter.output_s3_key_prefix",
-                    "data_type": "string"
                 },
                 {
                     "data_path": "action_result.parameter.document_name",
