@@ -130,7 +130,6 @@
                     "description": "Single command to be executed on the instance",
                     "data_type": "string",
                     "required": true,
-                    "allow_list": true,
                     "primary": false,
                     "order": 2
                 },

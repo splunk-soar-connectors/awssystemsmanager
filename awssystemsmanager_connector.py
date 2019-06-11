@@ -241,7 +241,9 @@ class AwsSystemsManagerConnector(BaseConnector):
 
         try:
             file_data = resp_json.pop('Body').read()
-            file_data = base64.b64decode(file_data)
+            # This conditional means 'get file' action has been called. Decodes the base64 string written by 'send command'
+            if file_name:
+                file_data = base64.b64decode(file_data)
         except:
             return action_result.set_status(phantom.APP_ERROR, "Could not retrieve object body from boto response")
 
@@ -351,7 +353,7 @@ class AwsSystemsManagerConnector(BaseConnector):
             'DocumentHashType': 'Sha256',
             'OutputS3BucketName': output_s3_bucket_name,
             'Parameters': {
-                'command': [command]
+                'commands': [command]
             }
         }
         if working_directory:
