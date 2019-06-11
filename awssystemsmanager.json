@@ -1,12 +1,12 @@
 {
     "appid": "097bd98d-4bee-4010-a444-9a3c8937f8c3",
-    "name": "AWS Simple Systems Manager",
+    "name": "AWS Systems Manager",
     "description": "This app integrates with AWS Simple Systems Manager (SSM) to remotely and securely manage the configuration of any EC2 instance or on-premises machine configured for SSM",
     "type": "devops",
     "product_vendor": "AWS",
     "logo": "logo_aws.svg",
     "logo_dark": "logo_aws_dark.svg",
-    "product_name": "Simple Systems Manager",
+    "product_name": "Systems Manager",
     "product_version_regex": ".*",
     "publisher": "Splunk",
     "license": "Copyright (c) 2019 Splunk Inc.",
@@ -126,7 +126,7 @@
                     ],
                     "order": 1
                 },
-                "commands": {
+                "command": {
                     "description": "Single command to be executed on the instance",
                     "data_type": "string",
                     "required": true,
@@ -188,7 +188,7 @@
                     ]
                 },
                 {
-                    "data_path": "action_result.data.*.Command.Parameters.commands",
+                    "data_path": "action_result.data.*.Command.Parameters.command",
                     "data_type": "string",
                     "example_values": [
                         "pwd"
@@ -427,9 +427,7 @@
                     "data_path": "action_result.message",
                     "data_type": "string",
                     "example_values": [
-                        "Status: Successfully executed commands",
-                        "Status: Successfully sent command, Created vault id: 6f3832d6a9dd6e41533f9648052c07f2379ec6fa",
-                        "boto3 call to S3 failed. Error string: 'An error occurred (NoSuchKey) when calling the GetObject operation: The specified key does not exist.'"
+                        "Status: Successfully sent command, Created vault id: 6f3832d6a9dd6e41533f9648052c07f2379ec6fa"
                     ]
                 },
                 {
@@ -440,10 +438,9 @@
                     ]
                 },
                 {
-                    "data_path": "action_result.parameter.commands",
+                    "data_path": "action_result.parameter.command",
                     "data_type": "string",
                     "example_values": [
-                        "pwd, ls",
                         "pwd",
                         "cat file.txt"
                     ]
@@ -493,7 +490,6 @@
                     "data_path": "action_result.summary.status",
                     "data_type": "string",
                     "example_values": [
-                        "Successfully executed commands",
                         "Successfully sent command"
                     ]
                 },

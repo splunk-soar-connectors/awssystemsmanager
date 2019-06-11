@@ -95,6 +95,8 @@ class AwsSystemsManagerConnector(BaseConnector):
                     resp_json['Payload'] = {'body': "", 'statusCode': resp_json['StatusCode']}
             except Exception as e:
                 exception_message = e.args[0].encode('utf-8').strip()
+                if 'BucketAlreadyExists' in exception_message:
+                    return phantom.APP_SUCCESS, None
                 return RetVal(action_result.set_status(phantom.APP_ERROR, 'boto3 call to SSM failed', exception_message), None)
         else:
             try:
@@ -324,12 +326,12 @@ class AwsSystemsManagerConnector(BaseConnector):
             file_path = param['file_path'].replace('\\', '/')
             file_name = file_path.split('/')[-1]
             if platform_type == 'Windows':
-                commands = '[Convert]::ToBase64String([IO.File]::ReadAllBytes("{}"))'.format(file_path)
+                command = '[Convert]::ToBase64String([IO.File]::ReadAllBytes("{}"))'.format(file_path)
             else:
-                commands = 'cat ' + file_path + ' | base64'
+                command = 'cat ' + file_path + ' | base64'
             save_output_to_vault = True
         else:
-            commands = param['commands']
+            command = param['command']
             file_name = None
             save_output_to_vault = param.get('save_output_to_vault')
         working_directory = param.get('working_directory')
@@ -349,7 +351,7 @@ class AwsSystemsManagerConnector(BaseConnector):
             'DocumentHashType': 'Sha256',
             'OutputS3BucketName': output_s3_bucket_name,
             'Parameters': {
-                'commands': [commands]
+                'command': [command]
             }
         }
         if working_directory:
@@ -695,6 +697,9 @@ class AwsSystemsManagerConnector(BaseConnector):
 
         elif action_id == 'add_parameter':
             ret_val = self._handle_add_parameter(param)
+
+        elif action_id == 'describe_instance':
+            ret_val = self._handle_describe_parameter(param)
 
         return ret_val
 
