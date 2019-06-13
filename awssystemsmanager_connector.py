@@ -566,20 +566,25 @@ class AwsSystemsManagerConnector(BaseConnector):
             if (phantom.is_fail(ret_val)):
                 return action_result.get_status()
 
-            # Add the response into the data section
+            # boto3 returning incorrect pagination results. This logic corrects the amount of results added
             if max_results is not None:
                 upper_bound = max_results - num_documents
                 if upper_bound > len(response['DocumentIdentifiers']):
-                    action_result.add_data(response)
+                    for document in response['DocumentIdentifiers']:
+                        action_result.add_data(document)
                     num_documents = num_documents + len(response['DocumentIdentifiers'])
                 else:
-                    action_result.add_data(response['DocumentIdentifiers'][0:upper_bound])
+                    for document in response['DocumentIdentifiers'][0:upper_bound]:
+                        action_result.add_data(document)
                     num_documents = num_documents + len(response['DocumentIdentifiers'][0:upper_bound])
             else:
-                action_result.add_data(response)
+                for document in response['DocumentIdentifiers']:
+                    action_result.add_data(document)
                 num_documents = num_documents + len(response['DocumentIdentifiers'])
 
             if next_token and max_results is None:
+                param['next_token'] = response['NextToken']
+            elif num_documents < max_results and next_token:
                 param['next_token'] = response['NextToken']
             else:
                 # Add a dictionary that is made up of the most important values from data into the summary
@@ -667,6 +672,41 @@ class AwsSystemsManagerConnector(BaseConnector):
 
         return action_result.set_status(phantom.APP_SUCCESS)
 
+    def _handle_describe_instance(self, param):
+
+        self.save_progress("In action handler for: {0}".format(self.get_action_identifier()))
+
+        # Add an action result object to self (BaseConnector) to represent the action for this param
+        action_result = self.add_action_result(ActionResult(dict(param)))
+
+        if not self._create_client(action_result):
+            return action_result.get_status()
+
+        instance_id = param['instance_id']
+        instance_information_filter_list = [{'key': 'InstanceIds', 'valueSet': [instance_id]}]
+
+        args = {
+            'InstanceInformationFilterList': instance_information_filter_list
+        }
+
+        # make rest call
+        ret_val, response = self._make_boto_call(action_result, 'describe_instance_information', **args)
+
+        if len(response['InstanceInformationList']) == 0:
+            return action_result.set_status(phantom.APP_ERROR, "No SSM instance found. Please check if instance is assigned to a System Manager IAM role.")
+
+        if (phantom.is_fail(ret_val)):
+            return action_result.get_status()
+
+        # Add the response into the data section
+        action_result.add_data(response)
+
+        # Add a dictionary that is made up of the most important values from data into the summary
+        summary = action_result.update_summary({})
+        summary['status'] = "Successfully retrieved instance information"
+
+        return action_result.set_status(phantom.APP_SUCCESS)
+
     def handle_action(self, param):
 
         ret_val = phantom.APP_SUCCESS
@@ -701,7 +741,7 @@ class AwsSystemsManagerConnector(BaseConnector):
             ret_val = self._handle_add_parameter(param)
 
         elif action_id == 'describe_instance':
-            ret_val = self._handle_describe_parameter(param)
+            ret_val = self._handle_describe_instance(param)
 
         return ret_val
 
