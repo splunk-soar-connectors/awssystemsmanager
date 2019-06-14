@@ -561,10 +561,11 @@ class AwsSystemsManagerConnector(BaseConnector):
 
             # make rest call
             ret_val, response = self._make_boto_call(action_result, 'list_documents', **args)
-            next_token = response.get('NextToken')
 
             if (phantom.is_fail(ret_val)):
                 return action_result.get_status()
+
+            next_token = response.get('NextToken')
 
             # boto3 returning incorrect pagination results. This logic corrects the amount of results added
             if max_results is not None:
