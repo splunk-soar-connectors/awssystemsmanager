@@ -1691,7 +1691,7 @@
             "read_only": true,
             "parameters": {
                 "name": {
-                    "description": "The name of the document to search for",
+                    "description": "The name of the document to search for (case sensitive)",
                     "data_type": "string",
                     "primary": true,
                     "required": false,
@@ -1715,12 +1715,14 @@
                     "order": 2
                 },
                 "document_type": {
-                    "description": "The OS platform type that the document can execute on (i.e. Windows, Linux)",
+                    "description": "The type of document",
                     "data_type": "string",
                     "value_list": [
                         "Command",
                         "Policy",
-                        "Automation"
+                        "Automation",
+                        "Session",
+                        "Package"
                     ],
                     "primary": false,
                     "required": false,
@@ -1740,6 +1742,13 @@
                     "data_type": "string",
                     "example_values": [
                         "success"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.TargetType",
+                    "data_type": "string",
+                    "example_values": [
+                        "/AWS::EC2::Instance"
                     ]
                 },
                 {
