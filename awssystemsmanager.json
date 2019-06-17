@@ -1,7 +1,7 @@
 {
     "appid": "097bd98d-4bee-4010-a444-9a3c8937f8c3",
     "name": "AWS Systems Manager",
-    "description": "This app integrates with AWS Simple Systems Manager (SSM) to remotely and securely manage the configuration of any EC2 instance or on-premises machine configured for SSM",
+    "description": "This app integrates with AWS Simple Systems Manager (SSM) to remotely and securely manage the configuration of any EC2 instance or on-premise machine configured for SSM",
     "type": "devops",
     "product_vendor": "AWS",
     "logo": "logo_aws.svg",
@@ -14,7 +14,7 @@
     "utctime_updated": "2019-04-01T20:52:20.000000Z",
     "package_name": "phantom_awssystemsmanager",
     "main_module": "awssystemsmanager_connector.pyc",
-    "min_phantom_version": "4.2.7532",
+    "min_phantom_version": "4.0.0001",
     "app_wizard_version": "1.0.0",
     "pip_dependencies": {
         "wheel": [
@@ -100,7 +100,8 @@
         },
         {
             "action": "execute program",
-            "description": "Runs shell script command on one or more managed instances",
+            "description": "Runs shell script command on a managed instance",
+            "verbose": "Running a shell script command will automatically write the output into an S3 bucket name of your choice or defaults the bucket name to 'ssm-phantom-app' if no bucket name is provided. If the bucket is nonexistant, this action will create the S3 bucket",
             "type": "generic",
             "identifier": "execute_program",
             "read_only": false,
@@ -946,27 +947,17 @@
                     "required": true,
                     "primary": true,
                     "contains": [
-                        "sha256"
+                        "sha256",
+                        "sha1"
                     ],
                     "order": 2
-                },
-                "document_hash_type": {
-                    "description": "Sha256 or Sha1",
-                    "data_type": "string",
-                    "required": true,
-                    "value_list": [
-                        "Sha256",
-                        "Sha1"
-                    ],
-                    "primary": false,
-                    "order": 3
                 },
                 "parameters": {
                     "description": "JSON object. The required and optional parameters specified in the document being run. Example: {\"commands\": [\"ls\"]}",
                     "data_type": "string",
                     "required": true,
                     "primary": false,
-                    "order": 4
+                    "order": 3
                 },
                 "working_directory": {
                     "description": "The path to the working directory on your instance",
@@ -1259,13 +1250,6 @@
                     ]
                 },
                 {
-                    "data_path": "action_result.parameter.document_hash_type",
-                    "data_type": "string",
-                    "example_values": [
-                        "Sha256"
-                    ]
-                },
-                {
                     "data_path": "action_result.parameter.working_directory",
                     "data_type": "string",
                     "example_values": [
@@ -1296,7 +1280,8 @@
                         "99749de5e62f71e5ebe9a55c2321e2c394796afe7208cff048696541e6f6771e"
                     ],
                     "contains": [
-                        "sha256"
+                        "sha256",
+                        "sha1"
                     ]
                 },
                 {
@@ -2298,11 +2283,10 @@
         },
         {
             "action": "describe instance",
-            "description": "Describes one or more of your instances",
-            "verbose": "test",
-            "type": "generic",
+            "description": "Describes your AWS instance, including the instance's platform type",
+            "type": "investigate",
             "identifier": "describe_instance",
-            "read_only": false,
+            "read_only": true,
             "parameters": {
                 "instance_id": {
                     "description": "The AWS instance ID",

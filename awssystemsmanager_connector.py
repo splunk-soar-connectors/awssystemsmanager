@@ -23,7 +23,6 @@ import os
 import tempfile
 import time
 import base64
-# import base64
 
 
 class RetVal(tuple):
@@ -419,7 +418,10 @@ class AwsSystemsManagerConnector(BaseConnector):
         instance_id = param['instance_id']
         document_name = param['document_name']
         document_hash = param['document_hash']
-        document_hash_type = param['document_hash_type']
+        if phantom.is_sha1(document_hash):
+            document_hash_type = 'Sha1'
+        else:
+            document_hash_type = 'Sha256'
         try:
             parameters = json.loads(param['parameters'])
         except Exception as e:
@@ -524,8 +526,6 @@ class AwsSystemsManagerConnector(BaseConnector):
             return action_result.get_status()
 
         num_documents = 0
-
-        # TODO gotta figure out how to filter multiple key/values
 
         while True:
 
