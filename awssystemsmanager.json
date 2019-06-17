@@ -14,7 +14,7 @@
     "utctime_updated": "2019-04-01T20:52:20.000000Z",
     "package_name": "phantom_awssystemsmanager",
     "main_module": "awssystemsmanager_connector.pyc",
-    "min_phantom_version": "4.0.0001",
+    "min_phantom_version": "4.2.7532",
     "app_wizard_version": "1.0.0",
     "pip_dependencies": {
         "wheel": [
