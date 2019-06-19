@@ -280,9 +280,9 @@ class AwsSystemsManagerConnector(BaseConnector):
                 return action_result.set_status(phantom.APP_ERROR, "Could not save file to vault: {0}".format(vault_ret.get('message', "Unknown Error")))
             vault_id = vault_ret[phantom.APP_JSON_HASH]
             result_json['vault_id'] = vault_id
-            result_json['s3_object_key'] = output_s3_object_key
             action_result.set_summary({"created_vault_id": vault_id})
 
+        result_json['s3_object_key'] = output_s3_object_key
         return ret_val, result_json
 
     def _handle_test_connectivity(self, param):
@@ -482,8 +482,12 @@ class AwsSystemsManagerConnector(BaseConnector):
             command_id = param.get('command_id')
             instance_id = param.get('instance_id')
             max_results = param.get('max_results')
+            limit = None
             if max_results == 0:
-                return action_result.set_status(phantom.APP_ERROR, u"MaxResults parameter must be in valid range 1-50")
+                return action_result.set_status(phantom.APP_ERROR, u"MaxResults parameter must be greater than 0")
+            elif max_results > 50:
+                limit = max_results
+                max_results = None
             next_token = param.get('next_token')
 
             args = {}
@@ -502,10 +506,25 @@ class AwsSystemsManagerConnector(BaseConnector):
             if (phantom.is_fail(ret_val)):
                 return action_result.get_status()
 
+            num_commands = num_commands + len(response['Commands'])
+
+            # handles limitation of boto3 pagination results greater than 50
+            if limit is not None:
+                action_result.add_data(response)
+                limit = limit - 50
+                param['max_results'] = limit
+                if response.get('NextToken'):
+                    param['next_token'] = response.get('NextToken')
+                    continue
+                else:
+                    # Add a dictionary that is made up of the most important values from data into the summary
+                    summary = action_result.update_summary({})
+                    summary['num_commands'] = num_commands
+                    return action_result.set_status(phantom.APP_SUCCESS)
+
             # Add the response into the data section
             action_result.add_data(response)
             next_token = response.get('NextToken')
-            num_commands = num_commands + len(response['Commands'])
 
             if next_token and max_results is None:
                 param['next_token'] = response['NextToken']
@@ -534,8 +553,14 @@ class AwsSystemsManagerConnector(BaseConnector):
             platform_type = param.get('platform_type')
             document_type = param.get('document_type')
             max_results = param.get('max_results')
+            # This flag is to handle the special case where max_results is a number greater than 50
+            flag = False
             if max_results == 0:
-                return action_result.set_status(phantom.APP_ERROR, u"MaxResults parameter must be in valid range 1-50")
+                return action_result.set_status(phantom.APP_ERROR, u"MaxResults parameter must be greater than 0")
+            elif max_results > 50:
+                limit = max_results
+                max_results = None
+                flag = True
             next_token = param.get('next_token')
 
             args = {}
@@ -568,8 +593,11 @@ class AwsSystemsManagerConnector(BaseConnector):
             next_token = response.get('NextToken')
 
             # boto3 returning incorrect pagination results. This logic corrects the amount of results added
-            if max_results is not None:
-                upper_bound = max_results - num_documents
+            if max_results is not None or flag:
+                if flag:
+                    upper_bound = limit - num_documents
+                else:
+                    upper_bound = max_results - num_documents
                 if upper_bound > len(response['DocumentIdentifiers']):
                     for document in response['DocumentIdentifiers']:
                         action_result.add_data(document)
