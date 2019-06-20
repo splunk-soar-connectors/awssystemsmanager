@@ -1,0 +1,19 @@
+<!-- File: readme.html
+  Copyright (c) 2019 Splunk Inc.
+
+  SPLUNK CONFIDENTIAL - Use or disclosure of this material in whole or in part
+  without a valid written license from Splunk Inc. is PROHIBITED.
+-->
+
+<b>Authorization</b><br></br>
+
+Upon installing AWS Systems Manager and configuring your asset, you will want to make sure your AWS account (preferably with Administator privileges) has the following permissions:<br></br>
+
+<ul>
+  <li>The AmazonSSMFullAccess policy is attached directly to the account</li>
+  <li>Ability to read and write to S3 buckets</li>
+</ul>
+
+By default, AWS Systems Manager does not have permission to perform actions on your instances. You must make sure to attach the AmazonEC2RoleforSSM IAM policy to the instance that you want to manage with SSM.
+
+For more information on setting up your account and instances with SSM privileges, visit the <a href="https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/tutorial_run_command.html">AWS tutorial</a>.

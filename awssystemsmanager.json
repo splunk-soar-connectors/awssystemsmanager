@@ -1,0 +1,2487 @@
+{
+    "appid": "097bd98d-4bee-4010-a444-9a3c8937f8c3",
+    "name": "AWS Systems Manager",
+    "description": "This app integrates with AWS Simple Systems Manager (SSM) to remotely and securely manage the configuration of any EC2 instance or on-premise machine configured for SSM",
+    "type": "devops",
+    "product_vendor": "AWS",
+    "logo": "logo_aws.svg",
+    "logo_dark": "logo_aws_dark.svg",
+    "product_name": "Systems Manager",
+    "product_version_regex": ".*",
+    "publisher": "Splunk",
+    "license": "Copyright (c) 2019 Splunk Inc.",
+    "app_version": "1.0.0",
+    "utctime_updated": "2019-04-01T20:52:20.000000Z",
+    "package_name": "phantom_awssystemsmanager",
+    "main_module": "awssystemsmanager_connector.pyc",
+    "min_phantom_version": "4.2.7532",
+    "app_wizard_version": "1.0.0",
+    "pip_dependencies": {
+        "wheel": [
+            {
+                "module": "boto3",
+                "input_file": "wheels/boto3-1.9.96-py2.py3-none-any.whl"
+            },
+            {
+                "module": "s3transfer",
+                "input_file": "wheels/s3transfer-0.2.0-py2.py3-none-any.whl"
+            },
+            {
+                "module": "botocore",
+                "input_file": "wheels/botocore-1.12.96-py2.py3-none-any.whl"
+            },
+            {
+                "module": "futures",
+                "input_file": "wheels/futures-3.2.0-py2-none-any.whl"
+            },
+            {
+                "module": "docutils",
+                "input_file": "wheels/docutils-0.14-py2-none-any.whl"
+            },
+            {
+                "module": "jmespath",
+                "input_file": "wheels/jmespath-0.9.3-py2.py3-none-any.whl"
+            }
+        ]
+    },
+    "configuration": {
+        "access_key": {
+            "description": "Access Key",
+            "data_type": "password",
+            "required": true,
+            "order": 0
+        },
+        "secret_key": {
+            "description": "Secret Key",
+            "data_type": "password",
+            "required": true,
+            "order": 1
+        },
+        "region": {
+            "description": "Region",
+            "data_type": "string",
+            "required": true,
+            "value_list": [
+                "US East (Ohio)",
+                "US East (N. Virginia)",
+                "US West (N. California)",
+                "US West (Oregon)",
+                "Asia Pacific (Hong Kong)",
+                "Asia Pacific (Mumbai)",
+                "Asia Pacific (Seoul)",
+                "Asia Pacific (Singapore)",
+                "Asia Pacific (Sydney)",
+                "Asia Pacific (Tokyo)",
+                "Canada (Central)",
+                "China (Beijing)",
+                "China (Ningxia)",
+                "EU (Frankfurt)",
+                "EU (Ireland)",
+                "EU (London)",
+                "EU (Paris)",
+                "EU (Stockholm)",
+                "South America (Sao Paulo)",
+                "AWS GovCloud (US-East)",
+                "AWS GovCloud (US)"
+            ],
+            "order": 2
+        }
+    },
+    "actions": [
+        {
+            "action": "test connectivity",
+            "identifier": "test_connectivity",
+            "description": "Validate the asset configuration for connectivity using supplied configuration",
+            "type": "test",
+            "read_only": true,
+            "parameters": {},
+            "output": [],
+            "versions": "EQ(*)"
+        },
+        {
+            "action": "execute program",
+            "description": "Runs shell script command on a managed instance",
+            "verbose": "Running a shell script command will automatically write the output into an S3 bucket name of your choice or defaults the bucket name to 'ssm-phantom-app' if no bucket name is provided. If the bucket is nonexistant, this action will create the S3 bucket",
+            "type": "generic",
+            "identifier": "execute_program",
+            "read_only": false,
+            "parameters": {
+                "instance_id": {
+                    "description": "The AWS Instance ID of where the command will run",
+                    "data_type": "string",
+                    "primary": true,
+                    "required": true,
+                    "order": 0,
+                    "contains": [
+                        "aws instance id"
+                    ]
+                },
+                "platform_type": {
+                    "description": "The operating system of the instance",
+                    "data_type": "string",
+                    "primary": false,
+                    "required": true,
+                    "value_list": [
+                        "Linux",
+                        "Windows"
+                    ],
+                    "order": 1
+                },
+                "command": {
+                    "description": "Single command to be executed on the instance",
+                    "data_type": "string",
+                    "required": true,
+                    "primary": false,
+                    "order": 2
+                },
+                "working_directory": {
+                    "description": "The path to the working directory on your instance",
+                    "data_type": "string",
+                    "required": false,
+                    "primary": true,
+                    "order": 3
+                },
+                "timeout_seconds": {
+                    "description": "If this time is reached and the command has not already started running, it will not run",
+                    "data_type": "numeric",
+                    "required": false,
+                    "primary": false,
+                    "order": 4
+                },
+                "comment": {
+                    "description": "User-specified information about the command, such as a brief description of what the command should do",
+                    "data_type": "string",
+                    "required": false,
+                    "primary": false,
+                    "order": 5
+                },
+                "output_s3_bucket_name": {
+                    "description": "The name of the existing S3 bucket where command execution responses should be stored",
+                    "data_type": "string",
+                    "required": false,
+                    "primary": false,
+                    "order": 6
+                },
+                "save_output_to_vault": {
+                    "description": "Store the output of the command into the vault",
+                    "data_type": "boolean",
+                    "required": false,
+                    "default": false,
+                    "primary": false,
+                    "order": 7
+                }
+            },
+            "output": [
+                {
+                    "data_path": "action_result.status",
+                    "data_type": "string",
+                    "example_values": [
+                        "success",
+                        "failed"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.Command.MaxErrors",
+                    "data_type": "string",
+                    "example_values": [
+                        "0"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.Command.Parameters.command",
+                    "data_type": "string",
+                    "example_values": [
+                        "pwd"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.Command.Parameters.workingDirectory",
+                    "data_type": "string",
+                    "example_values": [
+                        "/usr/bin"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.Command.DocumentName",
+                    "data_type": "string",
+                    "example_values": [
+                        "AWS-RunShellScript",
+                        "AWS-RunPowerShellScript"
+                    ],
+                    "column_name": "document name",
+                    "column_order": "2",
+                    "contains": [
+                        "aws document name"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.Command.OutputS3BucketName",
+                    "data_type": "string",
+                    "example_values": [
+                        "ssm-phantom-app"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.Command.OutputS3KeyPrefix",
+                    "data_type": "string",
+                    "example_values": [
+                        ""
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.Command.StatusDetails",
+                    "data_type": "string",
+                    "example_values": [
+                        "Pending"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.Command.InstanceIds",
+                    "data_type": "string",
+                    "example_values": [
+                        "i-0ea1454477403286d",
+                        "i-0274f8f32148f539f"
+                    ],
+                    "column_name": "instance id",
+                    "column_order": "1",
+                    "contains": [
+                        "aws instance id"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.Command.Status",
+                    "data_type": "string",
+                    "example_values": [
+                        "Pending"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.Command.TargetCount",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.Command.NotificationConfig.NotificationArn",
+                    "data_type": "string",
+                    "example_values": [
+                        ""
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.Command.NotificationConfig.NotificationType",
+                    "data_type": "string",
+                    "example_values": [
+                        ""
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.Command.RequestedDateTime",
+                    "data_type": "string",
+                    "example_values": [
+                        "2019-05-14 15:16:33",
+                        "2019-06-03 13:15:13"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.Command.ErrorCount",
+                    "data_type": "numeric",
+                    "example_values": [
+                        0
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.Command.MaxConcurrency",
+                    "data_type": "string",
+                    "example_values": [
+                        "50"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.Command.ServiceRole",
+                    "data_type": "string",
+                    "example_values": [
+                        ""
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.Command.CloudWatchOutputConfig.CloudWatchLogGroupName",
+                    "data_type": "string",
+                    "example_values": [
+                        ""
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.Command.CloudWatchOutputConfig.CloudWatchOutputEnabled",
+                    "data_type": "boolean",
+                    "example_values": [
+                        true,
+                        false
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.Command.CompletedCount",
+                    "data_type": "numeric",
+                    "example_values": [
+                        0
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.Command.DocumentVersion",
+                    "data_type": "string",
+                    "example_values": [
+                        ""
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.Command.Comment",
+                    "data_type": "string",
+                    "example_values": [
+                        "Checking contents of parent directory",
+                        ""
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.Command.ExpiresAfter",
+                    "data_type": "string",
+                    "example_values": [
+                        "2019-05-14 16:17:03",
+                        "2019-06-03 15:15:13"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.Command.DeliveryTimedOutCount",
+                    "data_type": "numeric",
+                    "example_values": [
+                        0
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.Command.CommandId",
+                    "data_type": "string",
+                    "example_values": [
+                        "88e37730-5fa8-48f7-8135-26d19d77d75c",
+                        "38c9d6fa-35db-42bf-b694-468bdc9c701c"
+                    ],
+                    "column_name": "command id",
+                    "column_order": "3",
+                    "contains": [
+                        "aws command id"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.ResponseMetadata.RetryAttempts",
+                    "data_type": "numeric",
+                    "example_values": [
+                        0
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.ResponseMetadata.HTTPStatusCode",
+                    "data_type": "numeric",
+                    "example_values": [
+                        200
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.ResponseMetadata.RequestId",
+                    "data_type": "string",
+                    "example_values": [
+                        "2a92b645-b13f-4df2-862a-3ed169e20299",
+                        "2e090e5f-d76c-4cab-958e-c97582ad7424"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.ResponseMetadata.HTTPHeaders.date",
+                    "data_type": "string",
+                    "example_values": [
+                        "Tue, 14 May 2019 22:16:32 GMT",
+                        "Mon, 03 Jun 2019 20:15:13 GMT"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.ResponseMetadata.HTTPHeaders.x-amzn-requestid",
+                    "data_type": "string",
+                    "example_values": [
+                        "2a92b645-b13f-4df2-862a-3ed169e20299",
+                        "2e090e5f-d76c-4cab-958e-c97582ad7424"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.ResponseMetadata.HTTPHeaders.content-length",
+                    "data_type": "string",
+                    "example_values": [
+                        "796",
+                        "728"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.ResponseMetadata.HTTPHeaders.content-type",
+                    "data_type": "string",
+                    "example_values": [
+                        "application/x-amz-json-1.1"
+                    ]
+                },
+                {
+                    "data_path": "action_result.message",
+                    "data_type": "string",
+                    "example_values": [
+                        "Status: Successfully sent command, Created vault id: 6f3832d6a9dd6e41533f9648052c07f2379ec6fa"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.comment",
+                    "data_type": "string",
+                    "example_values": [
+                        "Checking contents of parent directory"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.command",
+                    "data_type": "string",
+                    "example_values": [
+                        "pwd",
+                        "cat file.txt"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.timeout_seconds",
+                    "data_type": "numeric",
+                    "example_values": [
+                        30
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.instance_id",
+                    "data_type": "string",
+                    "example_values": [
+                        "i-0ea1454477403286d",
+                        "i-0274f8f32148f539f"
+                    ],
+                    "contains": [
+                        "aws instance id"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.platform_type",
+                    "data_type": "string",
+                    "example_values": [
+                        "Linux",
+                        "Windows"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.working_directory",
+                    "data_type": "string",
+                    "example_values": [
+                        "/usr/bin",
+                        "/Users/Administrator/Desktop/"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.output_s3_bucket_name",
+                    "data_type": "string",
+                    "example_values": [
+                        "ssm-app-phantom"
+                    ]
+                },
+                {
+                    "data_path": "action_result.summary.status",
+                    "data_type": "string",
+                    "example_values": [
+                        "Successfully sent command"
+                    ]
+                },
+                {
+                    "data_path": "summary.total_objects",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1,
+                        2
+                    ]
+                },
+                {
+                    "data_path": "summary.total_objects_successful",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1,
+                        0
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.File.output",
+                    "data_type": "string",
+                    "example_values": [
+                        "\r\nPath               \r\n----               \r\nC:\\Windows\\system32\r\n\r\n\r\n"
+                    ],
+                    "column_name": "command output",
+                    "column_order": "4"
+                },
+                {
+                    "data_path": "action_result.data.*.File.vault_id",
+                    "data_type": "string",
+                    "example_values": [
+                        "6f3832d6a9dd6e41533f9648052c07f2379ec6fa"
+                    ],
+                    "contains": [
+                        "sha1",
+                        "vault id"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.File.filename",
+                    "data_type": "string",
+                    "example_values": [
+                        "stdout"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.save_output_to_vault",
+                    "data_type": "boolean",
+                    "example_values": [
+                        true,
+                        false
+                    ]
+                },
+                {
+                    "data_path": "action_result.summary.created_vault_id",
+                    "data_type": "string",
+                    "example_values": [
+                        "6f3832d6a9dd6e41533f9648052c07f2379ec6fa"
+                    ],
+                    "contains": [
+                        "sha1"
+                    ]
+                }
+            ],
+            "render": {
+                "type": "table"
+            },
+            "versions": "EQ(*)"
+        },
+        {
+            "action": "get file",
+            "description": "Retrieve a file from an AWS instance and save it to the vault",
+            "type": "generic",
+            "identifier": "get_file",
+            "read_only": false,
+            "parameters": {
+                "instance_id": {
+                    "description": "The AWS Instance ID of where to grab the file from",
+                    "data_type": "string",
+                    "primary": true,
+                    "required": true,
+                    "order": 0,
+                    "contains": [
+                        "aws instance id"
+                    ]
+                },
+                "platform_type": {
+                    "description": "The operating system of the instance",
+                    "data_type": "string",
+                    "primary": false,
+                    "required": true,
+                    "value_list": [
+                        "Linux",
+                        "Windows"
+                    ],
+                    "order": 1
+                },
+                "file_path": {
+                    "description": "Full path of the file to download (include filename)",
+                    "data_type": "string",
+                    "required": true,
+                    "primary": false,
+                    "order": 2
+                }
+            },
+            "output": [
+                {
+                    "data_path": "action_result.status",
+                    "data_type": "string",
+                    "example_values": [
+                        "success"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.Command.MaxErrors",
+                    "data_type": "string",
+                    "example_values": [
+                        "0"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.Command.Parameters.commands",
+                    "data_type": "string",
+                    "example_values": [
+                        "cat /home/ec2-user/saver.py | base64"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.Command.DocumentName",
+                    "data_type": "string",
+                    "example_values": [
+                        "AWS-RunShellScript"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.Command.OutputS3BucketName",
+                    "data_type": "string",
+                    "example_values": [
+                        "ssm-phantom-app"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.Command.OutputS3KeyPrefix",
+                    "data_type": "string",
+                    "example_values": [
+                        ""
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.Command.StatusDetails",
+                    "data_type": "string",
+                    "example_values": [
+                        "Pending"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.Command.InstanceIds",
+                    "data_type": "string",
+                    "example_values": [
+                        "i-0ea1454477403286d"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.Command.Status",
+                    "data_type": "string",
+                    "example_values": [
+                        "Pending"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.Command.TargetCount",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.Command.NotificationConfig.NotificationArn",
+                    "data_type": "string",
+                    "example_values": [
+                        ""
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.Command.NotificationConfig.NotificationType",
+                    "data_type": "string",
+                    "example_values": [
+                        ""
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.Command.RequestedDateTime",
+                    "data_type": "string",
+                    "example_values": [
+                        "2019-06-13 15:03:51"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.Command.ErrorCount",
+                    "data_type": "numeric",
+                    "example_values": [
+                        0
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.Command.MaxConcurrency",
+                    "data_type": "string",
+                    "example_values": [
+                        "50"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.Command.ServiceRole",
+                    "data_type": "string",
+                    "example_values": [
+                        ""
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.Command.CloudWatchOutputConfig.CloudWatchLogGroupName",
+                    "data_type": "string",
+                    "example_values": [
+                        ""
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.Command.CloudWatchOutputConfig.CloudWatchOutputEnabled",
+                    "data_type": "boolean",
+                    "example_values": [
+                        true,
+                        false
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.Command.CompletedCount",
+                    "data_type": "numeric",
+                    "example_values": [
+                        0
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.Command.DocumentVersion",
+                    "data_type": "string",
+                    "example_values": [
+                        ""
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.Command.Comment",
+                    "data_type": "string",
+                    "example_values": [
+                        ""
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.Command.ExpiresAfter",
+                    "data_type": "string",
+                    "example_values": [
+                        "2019-06-13 17:03:51"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.Command.DeliveryTimedOutCount",
+                    "data_type": "numeric",
+                    "example_values": [
+                        0
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.Command.CommandId",
+                    "data_type": "string",
+                    "example_values": [
+                        "ca9bf311-0cc1-435c-ad87-cd55492f5bff"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.File.s3_object_key",
+                    "data_type": "string",
+                    "example_values": [
+                        "ca9bf311-0cc1-435c-ad87-cd55492f5bff/i-0ea1454477403286d/awsrunShellScript/0.awsrunShellScript/stdout"
+                    ],
+                    "column_name": "s3 object key",
+                    "column_order": "2"
+                },
+                {
+                    "data_path": "action_result.data.*.File.vault_id",
+                    "data_type": "string",
+                    "example_values": [
+                        "3fa5db539d7bceec01ac4c100481aa5682766d33"
+                    ],
+                    "contains": [
+                        "sha1",
+                        "vault id"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.File.filename",
+                    "data_type": "string",
+                    "example_values": [
+                        "saver.py"
+                    ],
+                    "column_name": "filename",
+                    "column_order": "0"
+                },
+                {
+                    "data_path": "action_result.data.*.ResponseMetadata.RetryAttempts",
+                    "data_type": "numeric",
+                    "example_values": [
+                        0
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.ResponseMetadata.HTTPStatusCode",
+                    "data_type": "numeric",
+                    "example_values": [
+                        200
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.ResponseMetadata.RequestId",
+                    "data_type": "string",
+                    "example_values": [
+                        "162d4090-5f0f-451e-bbc2-c5ab17a51aa4"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.ResponseMetadata.HTTPHeaders.date",
+                    "data_type": "string",
+                    "example_values": [
+                        "Thu, 13 Jun 2019 22:03:51 GMT"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.ResponseMetadata.HTTPHeaders.x-amzn-requestid",
+                    "data_type": "string",
+                    "example_values": [
+                        "162d4090-5f0f-451e-bbc2-c5ab17a51aa4"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.ResponseMetadata.HTTPHeaders.content-length",
+                    "data_type": "string",
+                    "example_values": [
+                        "756"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.ResponseMetadata.HTTPHeaders.content-type",
+                    "data_type": "string",
+                    "example_values": [
+                        "application/x-amz-json-1.1"
+                    ]
+                },
+                {
+                    "data_path": "action_result.message",
+                    "data_type": "string",
+                    "example_values": [
+                        "Status: Successfully downloaded file into the vault, Created vault id: 3fa5db539d7bceec01ac4c100481aa5682766d33"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.instance_id",
+                    "data_type": "string",
+                    "example_values": [
+                        "i-0ea1454477403286d"
+                    ],
+                    "contains": [
+                        "aws instance id"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.platform_type",
+                    "data_type": "string",
+                    "example_values": [
+                        "Linux"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.file_path",
+                    "data_type": "string",
+                    "example_values": [
+                        "/home/ec2-user/saver.py"
+                    ]
+                },
+                {
+                    "data_path": "action_result.summary.status",
+                    "data_type": "string",
+                    "example_values": [
+                        "Successfully downloaded file into the vault"
+                    ]
+                },
+                {
+                    "data_path": "action_result.summary.created_vault_id",
+                    "data_type": "string",
+                    "example_values": [
+                        "3fa5db539d7bceec01ac4c100481aa5682766d33"
+                    ],
+                    "contains": [
+                        "sha1"
+                    ],
+                    "column_name": "vault id",
+                    "column_order": "1"
+                },
+                {
+                    "data_path": "summary.total_objects",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
+                },
+                {
+                    "data_path": "summary.total_objects_successful",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
+                }
+            ],
+            "render": {
+                "type": "table"
+            },
+            "versions": "EQ(*)"
+        },
+        {
+            "action": "run document",
+            "description": "Runs command using a public or custom SSM Document on one or more managed instances",
+            "type": "generic",
+            "identifier": "run_document",
+            "read_only": false,
+            "parameters": {
+                "instance_id": {
+                    "description": "The AWS Instance ID of where the command will run",
+                    "data_type": "string",
+                    "primary": true,
+                    "required": true,
+                    "order": 0,
+                    "contains": [
+                        "aws instance id"
+                    ]
+                },
+                "document_name": {
+                    "description": "The name of the Systems Manager document to run. This can be a public document or a custom document",
+                    "data_type": "string",
+                    "primary": true,
+                    "required": true,
+                    "order": 1,
+                    "contains": [
+                        "aws document name"
+                    ]
+                },
+                "document_hash": {
+                    "description": "The Sha256 or Sha1 hash created by the system when the document was created",
+                    "data_type": "string",
+                    "required": true,
+                    "primary": true,
+                    "contains": [
+                        "sha256",
+                        "sha1"
+                    ],
+                    "order": 2
+                },
+                "parameters": {
+                    "description": "JSON object. The required and optional parameters specified in the document being run. Example: {\"commands\": [\"ls\"]}",
+                    "data_type": "string",
+                    "required": true,
+                    "primary": false,
+                    "order": 3
+                },
+                "working_directory": {
+                    "description": "The path to the working directory on your instance",
+                    "data_type": "string",
+                    "required": false,
+                    "primary": true,
+                    "order": 4
+                },
+                "timeout_seconds": {
+                    "description": "If this time is reached and the command has not already started running, it will not run",
+                    "data_type": "numeric",
+                    "required": false,
+                    "primary": false,
+                    "order": 5
+                },
+                "comment": {
+                    "description": "User-specified information about the command, such as a brief description of what the command should do",
+                    "data_type": "string",
+                    "required": false,
+                    "primary": false,
+                    "order": 6
+                },
+                "output_s3_bucket_name": {
+                    "description": "The name of the S3 bucket where command execution responses should be stored",
+                    "data_type": "string",
+                    "required": false,
+                    "primary": false,
+                    "order": 7
+                }
+            },
+            "output": [
+                {
+                    "data_path": "action_result.status",
+                    "data_type": "string",
+                    "example_values": [
+                        "success"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.Command.MaxErrors",
+                    "data_type": "string",
+                    "example_values": [
+                        "0"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.Command.Parameters.commands",
+                    "data_type": "string",
+                    "example_values": [
+                        "ls"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.Command.Parameters.workingDirectory",
+                    "data_type": "string",
+                    "example_values": [
+                        "/usr/bin"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.Command.DocumentName",
+                    "data_type": "string",
+                    "example_values": [
+                        "AWS-RunShellScript"
+                    ],
+                    "column_name": "document name",
+                    "column_order": "2",
+                    "contains": [
+                        "aws document name"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.Command.OutputS3BucketName",
+                    "data_type": "string",
+                    "example_values": [
+                        "ssm-app-phantom"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.Command.OutputS3KeyPrefix",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.Command.StatusDetails",
+                    "data_type": "string",
+                    "example_values": [
+                        "Pending"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.Command.InstanceIds",
+                    "data_type": "string",
+                    "example_values": [
+                        "i-0ea1454477403286d"
+                    ],
+                    "column_name": "instance id",
+                    "column_order": "1",
+                    "contains": [
+                        "aws instance id"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.Command.Status",
+                    "data_type": "string",
+                    "example_values": [
+                        "Pending"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.Command.TargetCount",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.Command.NotificationConfig.NotificationArn",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.Command.NotificationConfig.NotificationType",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.Command.RequestedDateTime",
+                    "data_type": "string",
+                    "example_values": [
+                        "2019-05-15 14:06:56"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.Command.ErrorCount",
+                    "data_type": "numeric",
+                    "example_values": [
+                        0
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.Command.MaxConcurrency",
+                    "data_type": "string",
+                    "example_values": [
+                        "50"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.Command.ServiceRole",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.Command.CloudWatchOutputConfig.CloudWatchLogGroupName",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.Command.CloudWatchOutputConfig.CloudWatchOutputEnabled",
+                    "data_type": "boolean",
+                    "example_values": [
+                        true,
+                        false
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.Command.CompletedCount",
+                    "data_type": "numeric",
+                    "example_values": [
+                        0
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.Command.DocumentVersion",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.Command.Comment",
+                    "data_type": "string",
+                    "example_values": [
+                        "Run Doc Action"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.Command.ExpiresAfter",
+                    "data_type": "string",
+                    "example_values": [
+                        "2019-05-15 15:07:26"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.Command.DeliveryTimedOutCount",
+                    "data_type": "numeric",
+                    "example_values": [
+                        0
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.Command.CommandId",
+                    "data_type": "string",
+                    "example_values": [
+                        "3bf78866-3492-4ffa-9fff-62215f8c7b13"
+                    ],
+                    "column_name": "command id",
+                    "column_order": "0",
+                    "contains": [
+                        "aws command id"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.ResponseMetadata.RetryAttempts",
+                    "data_type": "numeric",
+                    "example_values": [
+                        0
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.ResponseMetadata.HTTPStatusCode",
+                    "data_type": "numeric",
+                    "example_values": [
+                        200
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.ResponseMetadata.RequestId",
+                    "data_type": "string",
+                    "example_values": [
+                        "406e48bd-0acb-49a9-8755-3ac2f8f1de58"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.ResponseMetadata.HTTPHeaders.date",
+                    "data_type": "string",
+                    "example_values": [
+                        "Wed, 15 May 2019 21:06:56 GMT"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.ResponseMetadata.HTTPHeaders.x-amzn-requestid",
+                    "data_type": "string",
+                    "example_values": [
+                        "406e48bd-0acb-49a9-8755-3ac2f8f1de58"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.ResponseMetadata.HTTPHeaders.content-length",
+                    "data_type": "string",
+                    "example_values": [
+                        "768"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.ResponseMetadata.HTTPHeaders.content-type",
+                    "data_type": "string",
+                    "example_values": [
+                        "application/x-amz-json-1.1"
+                    ]
+                },
+                {
+                    "data_path": "action_result.message",
+                    "data_type": "string",
+                    "example_values": [
+                        "Status: Successfully executed commands"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.comment",
+                    "data_type": "string",
+                    "example_values": [
+                        "Run Doc Action"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.parameters",
+                    "data_type": "string",
+                    "example_values": [
+                        "{\"commands\": [\"ls\"]}"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.timeout_seconds",
+                    "data_type": "numeric",
+                    "example_values": [
+                        30
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.instance_id",
+                    "data_type": "string",
+                    "example_values": [
+                        "i-0ea1454477403286d"
+                    ],
+                    "contains": [
+                        "aws instance id"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.working_directory",
+                    "data_type": "string",
+                    "example_values": [
+                        "/usr/bin"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.output_s3_bucket_name",
+                    "data_type": "string",
+                    "example_values": [
+                        "ssm-app-phantom"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.document_name",
+                    "data_type": "string",
+                    "example_values": [
+                        "AWS-RunShellScript"
+                    ],
+                    "contains": [
+                        "aws document name"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.document_hash",
+                    "data_type": "string",
+                    "example_values": [
+                        "99749de5e62f71e5ebe9a55c2321e2c394796afe7208cff048696541e6f6771e"
+                    ],
+                    "contains": [
+                        "sha256",
+                        "sha1"
+                    ]
+                },
+                {
+                    "data_path": "action_result.summary.status",
+                    "data_type": "string",
+                    "example_values": [
+                        "Successfully executed commands"
+                    ]
+                },
+                {
+                    "data_path": "summary.total_objects",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
+                },
+                {
+                    "data_path": "summary.total_objects_successful",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
+                }
+            ],
+            "render": {
+                "type": "table"
+            },
+            "versions": "EQ(*)"
+        },
+        {
+            "action": "list commands",
+            "description": "Lists the commands ran by users of the AWS account",
+            "type": "investigate",
+            "identifier": "list_commands",
+            "read_only": true,
+            "parameters": {
+                "command_id": {
+                    "description": "If provided, lists only the specified command",
+                    "data_type": "string",
+                    "primary": true,
+                    "required": false,
+                    "order": 0,
+                    "contains": [
+                        "aws command id"
+                    ]
+                },
+                "instance_id": {
+                    "description": "Lists commands issued against this instance ID",
+                    "data_type": "string",
+                    "primary": true,
+                    "required": false,
+                    "order": 1,
+                    "contains": [
+                        "aws instance id"
+                    ]
+                },
+                "max_results": {
+                    "description": "The maximum number of items to return for this call",
+                    "data_type": "numeric",
+                    "primary": false,
+                    "required": false,
+                    "order": 2
+                }
+            },
+            "output": [
+                {
+                    "data_path": "action_result.status",
+                    "data_type": "string",
+                    "example_values": [
+                        "success"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.Commands.*.MaxErrors",
+                    "data_type": "string",
+                    "example_values": [
+                        "0"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.Commands.*.Parameters.commands",
+                    "data_type": "string",
+                    "example_values": [
+                        "ps aux",
+                        "pwd"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.Commands.*.DocumentName",
+                    "data_type": "string",
+                    "example_values": [
+                        "AWS-RunShellScript"
+                    ],
+                    "column_name": "document name",
+                    "column_order": "2",
+                    "contains": [
+                        "aws document name"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.Commands.*.OutputS3BucketName",
+                    "data_type": "string",
+                    "example_values": [
+                        "ssm-app-phantom"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.Commands.*.OutputS3KeyPrefix",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.Commands.*.StatusDetails",
+                    "data_type": "string",
+                    "example_values": [
+                        "Success"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.Commands.*.InstanceIds",
+                    "data_type": "string",
+                    "example_values": [
+                        "i-0ea1454477403286d"
+                    ],
+                    "column_name": "instance id",
+                    "column_order": "1",
+                    "contains": [
+                        "aws instance id"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.Commands.*.Status",
+                    "data_type": "string",
+                    "example_values": [
+                        "Success"
+                    ],
+                    "column_name": "status",
+                    "column_order": "3"
+                },
+                {
+                    "data_path": "action_result.data.*.Commands.*.TargetCount",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.Commands.*.NotificationConfig.NotificationArn",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.Commands.*.NotificationConfig.NotificationType",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.Commands.*.RequestedDateTime",
+                    "data_type": "string",
+                    "example_values": [
+                        "2019-05-22 01:41:52",
+                        "2019-05-22 15:46:39"
+                    ],
+                    "column_name": "requested date",
+                    "column_order": "4"
+                },
+                {
+                    "data_path": "action_result.data.*.Commands.*.ErrorCount",
+                    "data_type": "numeric",
+                    "example_values": [
+                        0
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.Commands.*.MaxConcurrency",
+                    "data_type": "string",
+                    "example_values": [
+                        "50"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.Commands.*.ServiceRole",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.Commands.*.CloudWatchOutputConfig.CloudWatchLogGroupName",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.Commands.*.CloudWatchOutputConfig.CloudWatchOutputEnabled",
+                    "data_type": "boolean",
+                    "example_values": [
+                        true,
+                        false
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.Commands.*.CompletedCount",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.Commands.*.DocumentVersion",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.data.*.Commands.*.Comment",
+                    "data_type": "string",
+                    "example_values": [
+                        "Checking contents of directory"
+                    ],
+                    "column_name": "comment",
+                    "column_order": "5"
+                },
+                {
+                    "data_path": "action_result.data.*.Commands.*.ExpiresAfter",
+                    "data_type": "string",
+                    "example_values": [
+                        "2019-05-22 03:41:52",
+                        "2019-05-22 16:47:09"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.Commands.*.DeliveryTimedOutCount",
+                    "data_type": "numeric",
+                    "example_values": [
+                        0
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.Commands.*.CommandId",
+                    "data_type": "string",
+                    "example_values": [
+                        "c31c1788-5840-4d85-9eaa-58f851572140",
+                        "8fbd52dd-ddc9-4206-a49f-810ec50e929e"
+                    ],
+                    "column_name": "command id",
+                    "column_order": "0",
+                    "contains": [
+                        "aws command id"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.Commands.*.Parameters.workingDirectory",
+                    "data_type": "string",
+                    "example_values": [
+                        "/home/centos",
+                        "/usr/bin"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.NextToken",
+                    "data_type": "string",
+                    "example_values": [
+                        "AAEAAVExdeRKApBXO9ofnDcyXchyXgZ7RPfufGR1OtIvHtvJAAAAAFzlzDKccrMg7XM4Q8+saHge+Un5krslphWfAQkDdtLdInAKkv9SeBDQa38jCk3CGF7CeCS0ot5kmBwynEMvrdPFnOk4zio6CTbfdQovrUl4ayo+0aPYGYQMEMS8VRDZ5g0UzKE+Gh67dIJdL2xklSRpZIduR4dYymA5GutXj5mR2TT0z4yxi4OXuCRabc7epi2B8cqn+AL1FrHB4DqPYOT7y6HOXhUWE+uuN2m0X4DPTZD0q/LgV8XrpuN0GM3sc5SxJsuZje11oEhkm+WgsY23HL68ChRXvsdQGIS1ot9d5hGvNbwnMWCb0DKnMITDpEVQ6QIdg5qXmbXoniYgXGmatLg/0k+HsS5irMV8ejpR68aullGh9XTuhM+23iZzYrdtlTieP/WspQ4IcRKhR9otaTi0t/OS8Cb9UfMcRqA7N+swY67PQr68aOjbbSw3J6BQ6rYFQoVvryHxFsxdmhwDj8Ho4Y2FdyfcxkUqgOCAvtfwStOEcch/Ei2hcz7e1B8mYmGy8l7xSH/sfCmppsJIqCiVllOKevDfwSxP1iSi/BD5+8Xgrvcl14PCh5iiG4Y2CVnTs7Bzf2GOae5/J232aMIumkr7Q6OxSAoNWcTKhebjvoyssCaZjCLGWcV7A/+yTPiI+S+gS3QaReinjAAGupTcgkG3UbsmyeQMRU4ttF1okfmUsiAW1/XOVxdliWCchW2Pmm7nkNm+OhkF0rjeRx9LcQkXySInHiHCq7nyG391/ZHn1NKun/U40/tY4qSjuT/cl5GTlnX/AJShGJ4wAGqC3O0sPyKKnjCNM6sttTWqfCX7/aUNdsPOdwWSxfBrlk3Xdm8QpwrqfSvr0EB0SNrrrGG5w4KzVmHSZ+Y+v5Vc+mEfNsrBD22/ZX/ySOK0EVq7etlQUrXA4pzGTHwxt1kmMWOrqz5M1tpX6Rrqao04XURpyH5cGxhbNC1JpKdDo9G+kX11y1dO4F15GAhayCQikSuWJIH304nn2tDrldtYzyR02D52zu5l9bTp98cCC1AfHtfooFGrbKRusYFH9B8mSlaQLgRNju74Z9hQ//Gr8g=="
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.ResponseMetadata.RetryAttempts",
+                    "data_type": "numeric",
+                    "example_values": [
+                        0
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.ResponseMetadata.HTTPStatusCode",
+                    "data_type": "numeric",
+                    "example_values": [
+                        200
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.ResponseMetadata.RequestId",
+                    "data_type": "string",
+                    "example_values": [
+                        "13a8b8fa-18dd-493f-b160-3d024f81d60e",
+                        "4e59e72f-4b08-4b4d-b804-95c261306282"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.ResponseMetadata.HTTPHeaders.date",
+                    "data_type": "string",
+                    "example_values": [
+                        "Wed, 22 May 2019 22:24:50 GMT",
+                        "Wed, 22 May 2019 23:15:56 GMT"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.ResponseMetadata.HTTPHeaders.x-amzn-requestid",
+                    "data_type": "string",
+                    "example_values": [
+                        "13a8b8fa-18dd-493f-b160-3d024f81d60e",
+                        "4e59e72f-4b08-4b4d-b804-95c261306282"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.ResponseMetadata.HTTPHeaders.content-length",
+                    "data_type": "string",
+                    "example_values": [
+                        "3321",
+                        "786"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.ResponseMetadata.HTTPHeaders.content-type",
+                    "data_type": "string",
+                    "example_values": [
+                        "application/x-amz-json-1.1"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.Commands.*.Parameters.Operation",
+                    "data_type": "string",
+                    "example_values": [
+                        "Install"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.Commands.*.Parameters.executionTimeout",
+                    "data_type": "string",
+                    "example_values": [
+                        "3600"
+                    ]
+                },
+                {
+                    "data_path": "action_result.message",
+                    "data_type": "string",
+                    "example_values": [
+                        "Num commands: 43",
+                        "Num commands: 1"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.max_results",
+                    "data_type": "numeric",
+                    "example_values": [
+                        3
+                    ]
+                },
+                {
+                    "data_path": "action_result.summary.num_commands",
+                    "data_type": "numeric",
+                    "example_values": [
+                        43,
+                        1
+                    ]
+                },
+                {
+                    "data_path": "summary.total_objects",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
+                },
+                {
+                    "data_path": "summary.total_objects_successful",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.instance_id",
+                    "data_type": "string",
+                    "example_values": [
+                        "i-0ea1454477403286d"
+                    ],
+                    "contains": [
+                        "aws instance id"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.command_id",
+                    "data_type": "string",
+                    "example_values": [
+                        "8fbd52dd-ddc9-4206-a49f-810ec50e929e"
+                    ],
+                    "contains": [
+                        "aws command id"
+                    ]
+                }
+            ],
+            "render": {
+                "type": "table"
+            },
+            "versions": "EQ(*)"
+        },
+        {
+            "action": "list documents",
+            "description": "Lists one or more of the Systems Manager documents",
+            "type": "investigate",
+            "identifier": "list_documents",
+            "read_only": true,
+            "parameters": {
+                "name": {
+                    "description": "The name of the document to search for (case sensitive)",
+                    "data_type": "string",
+                    "primary": true,
+                    "required": false,
+                    "order": 0,
+                    "contains": [
+                        "aws document name"
+                    ]
+                },
+                "owner": {
+                    "description": "The owner of the document to search for",
+                    "data_type": "string",
+                    "primary": false,
+                    "required": false,
+                    "order": 1
+                },
+                "platform_type": {
+                    "description": "The OS platform type that the document can execute on (i.e. Windows, Linux)",
+                    "data_type": "string",
+                    "primary": false,
+                    "required": false,
+                    "order": 2
+                },
+                "document_type": {
+                    "description": "The type of document",
+                    "data_type": "string",
+                    "value_list": [
+                        "Command",
+                        "Policy",
+                        "Automation",
+                        "Session",
+                        "Package"
+                    ],
+                    "primary": false,
+                    "required": false,
+                    "order": 3
+                },
+                "max_results": {
+                    "description": "The maximum number of items to return for this call",
+                    "data_type": "numeric",
+                    "primary": false,
+                    "required": false,
+                    "order": 4
+                }
+            },
+            "output": [
+                {
+                    "data_path": "action_result.status",
+                    "data_type": "string",
+                    "example_values": [
+                        "success"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.TargetType",
+                    "data_type": "string",
+                    "example_values": [
+                        "/AWS::EC2::Instance"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.Name",
+                    "data_type": "string",
+                    "example_values": [
+                        "AWS-ConfigureAWSPackage"
+                    ],
+                    "contains": [
+                        "aws document name"
+                    ],
+                    "column_name": "name",
+                    "column_order": "0"
+                },
+                {
+                    "data_path": "action_result.data.*.PlatformTypes",
+                    "data_type": "string",
+                    "example_values": [
+                        "Linux"
+                    ],
+                    "column_name": "platform",
+                    "column_order": "3"
+                },
+                {
+                    "data_path": "action_result.data.*.DocumentVersion",
+                    "data_type": "string",
+                    "example_values": [
+                        "1"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.DocumentType",
+                    "data_type": "string",
+                    "example_values": [
+                        "Command"
+                    ],
+                    "column_name": "document type",
+                    "column_order": "1"
+                },
+                {
+                    "data_path": "action_result.data.*.Owner",
+                    "data_type": "string",
+                    "example_values": [
+                        "Amazon"
+                    ],
+                    "column_name": "owner",
+                    "column_order": "2"
+                },
+                {
+                    "data_path": "action_result.data.*.SchemaVersion",
+                    "data_type": "string",
+                    "example_values": [
+                        "2.0"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.DocumentFormat",
+                    "data_type": "string",
+                    "example_values": [
+                        "JSON"
+                    ]
+                },
+                {
+                    "data_path": "action_result.message",
+                    "data_type": "string",
+                    "example_values": [
+                        "Num documents: 5"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.name",
+                    "data_type": "string",
+                    "example_values": [
+                        "AWS"
+                    ],
+                    "contains": [
+                        "aws document name"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.platform_type",
+                    "data_type": "string",
+                    "example_values": [
+                        "Linux"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.max_results",
+                    "data_type": "numeric",
+                    "example_values": [
+                        5
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.owner",
+                    "data_type": "string",
+                    "example_values": [
+                        "Amazon"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.document_type",
+                    "data_type": "string",
+                    "example_values": [
+                        "Command"
+                    ]
+                },
+                {
+                    "data_path": "action_result.summary.num_documents",
+                    "data_type": "numeric",
+                    "example_values": [
+                        5
+                    ]
+                },
+                {
+                    "data_path": "summary.total_objects",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
+                },
+                {
+                    "data_path": "summary.total_objects_successful",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
+                }
+            ],
+            "render": {
+                "type": "table"
+            },
+            "versions": "EQ(*)"
+        },
+        {
+            "action": "get parameter",
+            "description": "Get information about a parameter by using the parameter name",
+            "type": "investigate",
+            "identifier": "get_parameter",
+            "read_only": true,
+            "parameters": {
+                "name": {
+                    "description": "The name of the parameter that you want to query",
+                    "data_type": "string",
+                    "primary": true,
+                    "required": true,
+                    "order": 0,
+                    "contains": [
+                        "aws parameter name"
+                    ]
+                },
+                "with_decryption": {
+                    "description": "Check to decrypt values of secure string parameters. This flag is ignored for String and StringList parameter types",
+                    "data_type": "boolean",
+                    "primary": false,
+                    "required": false,
+                    "order": 1
+                }
+            },
+            "output": [
+                {
+                    "data_path": "action_result.status",
+                    "data_type": "string",
+                    "example_values": [
+                        "success"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.Parameter.Name",
+                    "data_type": "string",
+                    "example_values": [
+                        "matt-test-parameter"
+                    ],
+                    "column_name": "name",
+                    "column_order": "0",
+                    "contains": [
+                        "aws parameter name"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.Parameter.LastModifiedDate",
+                    "data_type": "string",
+                    "example_values": [
+                        "2019-05-08 15:53:29"
+                    ],
+                    "column_name": "last modified date",
+                    "column_order": "4"
+                },
+                {
+                    "data_path": "action_result.data.*.Parameter.Value",
+                    "data_type": "string",
+                    "example_values": [
+                        "testing values"
+                    ],
+                    "column_name": "value",
+                    "column_order": "2"
+                },
+                {
+                    "data_path": "action_result.data.*.Parameter.Version",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ],
+                    "column_name": "version",
+                    "column_order": "3"
+                },
+                {
+                    "data_path": "action_result.data.*.Parameter.Type",
+                    "data_type": "string",
+                    "example_values": [
+                        "String"
+                    ],
+                    "column_name": "type",
+                    "column_order": "1"
+                },
+                {
+                    "data_path": "action_result.data.*.Parameter.ARN",
+                    "data_type": "string",
+                    "example_values": [
+                        "arn:aws:ssm:us-east-1:849257271967:parameter/matt-test-parameter"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.ResponseMetadata.RetryAttempts",
+                    "data_type": "numeric",
+                    "example_values": [
+                        0
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.ResponseMetadata.HTTPStatusCode",
+                    "data_type": "numeric",
+                    "example_values": [
+                        200
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.ResponseMetadata.RequestId",
+                    "data_type": "string",
+                    "example_values": [
+                        "1033d084-54da-4854-830a-cc498108fe19"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.ResponseMetadata.HTTPHeaders.date",
+                    "data_type": "string",
+                    "example_values": [
+                        "Fri, 17 May 2019 18:34:15 GMT"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.ResponseMetadata.HTTPHeaders.x-amzn-requestid",
+                    "data_type": "string",
+                    "example_values": [
+                        "1033d084-54da-4854-830a-cc498108fe19"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.ResponseMetadata.HTTPHeaders.content-length",
+                    "data_type": "string",
+                    "example_values": [
+                        "206"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.ResponseMetadata.HTTPHeaders.content-type",
+                    "data_type": "string",
+                    "example_values": [
+                        "application/x-amz-json-1.1"
+                    ]
+                },
+                {
+                    "data_path": "action_result.message",
+                    "data_type": "string",
+                    "example_values": [
+                        "Status: Successfully retrieved parameter"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.with_decryption",
+                    "data_type": "boolean",
+                    "example_values": [
+                        true,
+                        false
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.name",
+                    "data_type": "string",
+                    "example_values": [
+                        "matt-test-parameter"
+                    ],
+                    "contains": [
+                        "aws parameter name"
+                    ]
+                },
+                {
+                    "data_path": "action_result.summary.status",
+                    "data_type": "string",
+                    "example_values": [
+                        "Successfully retrieved parameter"
+                    ]
+                },
+                {
+                    "data_path": "summary.total_objects",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
+                },
+                {
+                    "data_path": "summary.total_objects_successful",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
+                }
+            ],
+            "render": {
+                "type": "table"
+            },
+            "versions": "EQ(*)"
+        },
+        {
+            "action": "add parameter",
+            "description": "Adds a parameter to the AWS account's Parameter Store",
+            "verbose": "<b>Parameter Naming Constraints:</b><ul><li>Parameter names are case sensitive.</li><li>A parameter name must be unique within an AWS Region</li><li>A parameter name can't be prefixed with \"aws\" or \"ssm\" (case-insensitive).</li><li>Parameter names can include only the following symbols and letters: a-zA-Z0-9_.-/</li><li>A parameter name can't include spaces.</li><li>Parameter hierarchies are limited to a maximum depth of fifteen levels.</li><li>The maximum length for the fully qualified parameter name is 1011 characters.</li></ul>",
+            "type": "generic",
+            "identifier": "add_parameter",
+            "read_only": false,
+            "parameters": {
+                "name": {
+                    "description": "The fully qualified name of the parameter that you want to add to the system. Please refer to app documentation page for naming restrictions",
+                    "data_type": "string",
+                    "primary": true,
+                    "required": true,
+                    "order": 0,
+                    "contains": [
+                        "aws parameter name"
+                    ]
+                },
+                "description": {
+                    "description": "Information about the parameter that you want to add to the system. Optional but recommended",
+                    "data_type": "string",
+                    "primary": false,
+                    "required": false,
+                    "order": 1
+                },
+                "value": {
+                    "description": "The parameter value that you want to add to the system. Standard parameters have a value limit of 4 KB. Advanced parameters have a value limit of 8 KB",
+                    "data_type": "string",
+                    "primary": false,
+                    "required": true,
+                    "order": 2
+                },
+                "type": {
+                    "description": "The type of parameter that you want to add to the system. Items in StringList must be seperated by a comma (,). SecureString parameters must use an AWS KMS Key ID",
+                    "data_type": "string",
+                    "value_list": [
+                        "String",
+                        "StringList",
+                        "SecureString"
+                    ],
+                    "primary": false,
+                    "required": true,
+                    "order": 3
+                },
+                "key_id": {
+                    "description": "The KMS Key ID that you want to use to encrypt a SecureString parameter. Defaults to the AWS KMS key automatically assigned to your AWS account if no key ID is provided",
+                    "data_type": "string",
+                    "primary": false,
+                    "required": false,
+                    "order": 4
+                },
+                "overwrite": {
+                    "description": "Overwrite an existing parameter",
+                    "data_type": "boolean",
+                    "default": false,
+                    "primary": false,
+                    "required": false,
+                    "order": 5
+                },
+                "allowed_pattern": {
+                    "description": "A regular expression used to validate the parameter value. For example, for String types with values restricted to numbers, you can specify the following: AllowedPattern=^d+$",
+                    "data_type": "string",
+                    "primary": false,
+                    "required": false,
+                    "order": 6
+                }
+            },
+            "output": [
+                {
+                    "data_path": "action_result.status",
+                    "data_type": "string",
+                    "example_values": [
+                        "success"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.Version",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ],
+                    "column_name": "version",
+                    "column_order": "2"
+                },
+                {
+                    "data_path": "action_result.data.*.ResponseMetadata.RetryAttempts",
+                    "data_type": "numeric",
+                    "example_values": [
+                        0
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.ResponseMetadata.HTTPStatusCode",
+                    "data_type": "numeric",
+                    "example_values": [
+                        200
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.ResponseMetadata.RequestId",
+                    "data_type": "string",
+                    "example_values": [
+                        "db8eb7d9-c532-4929-aa20-f1d7c1703ce1"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.ResponseMetadata.HTTPHeaders.date",
+                    "data_type": "string",
+                    "example_values": [
+                        "Tue, 21 May 2019 16:46:04 GMT"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.ResponseMetadata.HTTPHeaders.x-amzn-requestid",
+                    "data_type": "string",
+                    "example_values": [
+                        "db8eb7d9-c532-4929-aa20-f1d7c1703ce1"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.ResponseMetadata.HTTPHeaders.content-length",
+                    "data_type": "string",
+                    "example_values": [
+                        "13"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.ResponseMetadata.HTTPHeaders.content-type",
+                    "data_type": "string",
+                    "example_values": [
+                        "application/x-amz-json-1.1"
+                    ]
+                },
+                {
+                    "data_path": "action_result.message",
+                    "data_type": "string",
+                    "example_values": [
+                        "Status: Successfully added parameter"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.name",
+                    "data_type": "string",
+                    "example_values": [
+                        "phantom"
+                    ],
+                    "column_name": "name",
+                    "column_order": "0",
+                    "contains": [
+                        "aws parameter name"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.value",
+                    "data_type": "string",
+                    "example_values": [
+                        "thephantom"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.allowed_pattern",
+                    "data_type": "string",
+                    "example_values": [
+                        "^[a-z0-9_\\-]+$"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.key_id",
+                    "data_type": "string",
+                    "example_values": [
+                        "alias/aws/ssm"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.type",
+                    "data_type": "string",
+                    "example_values": [
+                        "SecureString"
+                    ],
+                    "column_name": "type",
+                    "column_order": "1"
+                },
+                {
+                    "data_path": "action_result.parameter.overwrite",
+                    "data_type": "boolean",
+                    "example_values": [
+                        true,
+                        false
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.description",
+                    "data_type": "string",
+                    "example_values": [
+                        "parameter for testing"
+                    ]
+                },
+                {
+                    "data_path": "action_result.summary.status",
+                    "data_type": "string",
+                    "example_values": [
+                        "Successfully added parameter"
+                    ]
+                },
+                {
+                    "data_path": "summary.total_objects",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
+                },
+                {
+                    "data_path": "summary.total_objects_successful",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
+                }
+            ],
+            "render": {
+                "type": "table"
+            },
+            "versions": "EQ(*)"
+        },
+        {
+            "action": "describe instance",
+            "description": "Describes your AWS instance, including the instance's platform type",
+            "type": "investigate",
+            "identifier": "describe_instance",
+            "read_only": true,
+            "parameters": {
+                "instance_id": {
+                    "description": "The AWS instance ID",
+                    "data_type": "string",
+                    "primary": true,
+                    "required": true,
+                    "order": 0,
+                    "contains": [
+                        "aws instance id"
+                    ]
+                }
+            },
+            "output": [
+                {
+                    "data_path": "action_result.status",
+                    "data_type": "string",
+                    "example_values": [
+                        "success"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.InstanceInformationList.*.IsLatestVersion",
+                    "data_type": "boolean",
+                    "example_values": [
+                        true,
+                        false
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.InstanceInformationList.*.ComputerName",
+                    "data_type": "string",
+                    "example_values": [
+                        "EC2AMAZ-QFKJV94.WORKGROUP"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.InstanceInformationList.*.PingStatus",
+                    "data_type": "string",
+                    "example_values": [
+                        "Online"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.InstanceInformationList.*.InstanceId",
+                    "data_type": "string",
+                    "example_values": [
+                        "i-0274f8f32148f539f"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.InstanceInformationList.*.IPAddress",
+                    "data_type": "string",
+                    "example_values": [
+                        "172.31.84.173"
+                    ],
+                    "contains": [
+                        "ip"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.InstanceInformationList.*.ResourceType",
+                    "data_type": "string",
+                    "example_values": [
+                        "EC2Instance"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.InstanceInformationList.*.AgentVersion",
+                    "data_type": "string",
+                    "example_values": [
+                        "2.3.444.0"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.InstanceInformationList.*.PlatformVersion",
+                    "data_type": "string",
+                    "example_values": [
+                        "10.0.17763"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.InstanceInformationList.*.PlatformName",
+                    "data_type": "string",
+                    "example_values": [
+                        "Microsoft Windows Server 2019 Datacenter"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.InstanceInformationList.*.PlatformType",
+                    "data_type": "string",
+                    "example_values": [
+                        "Windows"
+                    ],
+                    "column_name": "Platform",
+                    "column_order": "0"
+                },
+                {
+                    "data_path": "action_result.data.*.InstanceInformationList.*.LastPingDateTime",
+                    "data_type": "string",
+                    "example_values": [
+                        "2019-06-12 13:22:04"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.ResponseMetadata.RetryAttempts",
+                    "data_type": "numeric",
+                    "example_values": [
+                        0
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.ResponseMetadata.HTTPStatusCode",
+                    "data_type": "numeric",
+                    "example_values": [
+                        200
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.ResponseMetadata.RequestId",
+                    "data_type": "string",
+                    "example_values": [
+                        "351a30e4-874f-4314-962e-e7c133b460e2"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.ResponseMetadata.HTTPHeaders.date",
+                    "data_type": "string",
+                    "example_values": [
+                        "Wed, 12 Jun 2019 20:22:16 GMT"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.ResponseMetadata.HTTPHeaders.x-amzn-requestid",
+                    "data_type": "string",
+                    "example_values": [
+                        "351a30e4-874f-4314-962e-e7c133b460e2"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.ResponseMetadata.HTTPHeaders.content-length",
+                    "data_type": "string",
+                    "example_values": [
+                        "389"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.ResponseMetadata.HTTPHeaders.content-type",
+                    "data_type": "string",
+                    "example_values": [
+                        "application/x-amz-json-1.1"
+                    ]
+                },
+                {
+                    "data_path": "action_result.message",
+                    "data_type": "string",
+                    "example_values": [
+                        "Status: Successfully retrieved instance information"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.instance_id",
+                    "data_type": "string",
+                    "example_values": [
+                        "i-0274f8f32148f539f"
+                    ],
+                    "contains": [
+                        "aws instance id"
+                    ]
+                },
+                {
+                    "data_path": "action_result.summary.status",
+                    "data_type": "string",
+                    "example_values": [
+                        "Successfully retrieved instance information"
+                    ]
+                },
+                {
+                    "data_path": "summary.total_objects",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
+                },
+                {
+                    "data_path": "summary.total_objects_successful",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
+                }
+            ],
+            "render": {
+                "type": "table"
+            },
+            "versions": "EQ(*)"
+        }
+    ]
+}
