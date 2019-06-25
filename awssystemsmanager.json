@@ -2334,6 +2334,11 @@
                     "data_type": "string",
                     "example_values": [
                         "i-0274f8f32148f539f"
+                    ],
+                    "column_name": "instance id",
+                    "column_order": "0",
+                    "contains": [
+                        "aws instance id"
                     ]
                 },
                 {
@@ -2342,6 +2347,8 @@
                     "example_values": [
                         "172.31.84.173"
                     ],
+                    "column_name": "ip",
+                    "column_order": "2",
                     "contains": [
                         "ip"
                     ]
@@ -2381,7 +2388,7 @@
                         "Windows"
                     ],
                     "column_name": "Platform",
-                    "column_order": "0"
+                    "column_order": "1"
                 },
                 {
                     "data_path": "action_result.data.*.InstanceInformationList.*.LastPingDateTime",

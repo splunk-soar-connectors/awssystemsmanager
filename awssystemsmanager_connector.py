@@ -721,11 +721,11 @@ class AwsSystemsManagerConnector(BaseConnector):
         # make rest call
         ret_val, response = self._make_boto_call(action_result, 'describe_instance_information', **args)
 
-        if len(response['InstanceInformationList']) == 0:
-            return action_result.set_status(phantom.APP_ERROR, "No SSM instance found. Please check if instance is assigned to a System Manager IAM role.")
-
         if (phantom.is_fail(ret_val)):
             return action_result.get_status()
+
+        if len(response['InstanceInformationList']) == 0:
+            return action_result.set_status(phantom.APP_ERROR, "No SSM instance found. Please check if instance is assigned to a System Manager IAM role.")
 
         # Add the response into the data section
         action_result.add_data(response)
