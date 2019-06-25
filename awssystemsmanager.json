@@ -223,10 +223,7 @@
                 },
                 {
                     "data_path": "action_result.data.*.Command.OutputS3KeyPrefix",
-                    "data_type": "string",
-                    "example_values": [
-                        ""
-                    ]
+                    "data_type": "string"
                 },
                 {
                     "data_path": "action_result.data.*.Command.StatusDetails",
@@ -264,17 +261,11 @@
                 },
                 {
                     "data_path": "action_result.data.*.Command.NotificationConfig.NotificationArn",
-                    "data_type": "string",
-                    "example_values": [
-                        ""
-                    ]
+                    "data_type": "string"
                 },
                 {
                     "data_path": "action_result.data.*.Command.NotificationConfig.NotificationType",
-                    "data_type": "string",
-                    "example_values": [
-                        ""
-                    ]
+                    "data_type": "string"
                 },
                 {
                     "data_path": "action_result.data.*.Command.RequestedDateTime",
@@ -300,17 +291,11 @@
                 },
                 {
                     "data_path": "action_result.data.*.Command.ServiceRole",
-                    "data_type": "string",
-                    "example_values": [
-                        ""
-                    ]
+                    "data_type": "string"
                 },
                 {
                     "data_path": "action_result.data.*.Command.CloudWatchOutputConfig.CloudWatchLogGroupName",
-                    "data_type": "string",
-                    "example_values": [
-                        ""
-                    ]
+                    "data_type": "string"
                 },
                 {
                     "data_path": "action_result.data.*.Command.CloudWatchOutputConfig.CloudWatchOutputEnabled",
@@ -329,17 +314,13 @@
                 },
                 {
                     "data_path": "action_result.data.*.Command.DocumentVersion",
-                    "data_type": "string",
-                    "example_values": [
-                        ""
-                    ]
+                    "data_type": "string"
                 },
                 {
                     "data_path": "action_result.data.*.Command.Comment",
                     "data_type": "string",
                     "example_values": [
-                        "Checking contents of parent directory",
-                        ""
+                        "Checking contents of parent directory"
                     ]
                 },
                 {
@@ -427,7 +408,7 @@
                     "data_path": "action_result.message",
                     "data_type": "string",
                     "example_values": [
-                        "Status: Successfully sent command, Created vault id: 6f3832d6a9dd6e41533f9648052c07f2379ec6fa"
+                        "Status: Successfully executed program, Created vault id: 6f3832d6a9dd6e41533f9648052c07f2379ec6fa"
                     ]
                 },
                 {
@@ -483,14 +464,14 @@
                     "data_path": "action_result.parameter.output_s3_bucket_name",
                     "data_type": "string",
                     "example_values": [
-                        "ssm-app-phantom"
+                        "ssm-phantom-app"
                     ]
                 },
                 {
                     "data_path": "action_result.summary.status",
                     "data_type": "string",
                     "example_values": [
-                        "Successfully sent command"
+                        "Successfully executed program"
                     ]
                 },
                 {
@@ -623,6 +604,9 @@
                     "data_type": "string",
                     "example_values": [
                         "AWS-RunShellScript"
+                    ],
+                    "contains": [
+                        "aws document name"
                     ]
                 },
                 {
@@ -634,10 +618,7 @@
                 },
                 {
                     "data_path": "action_result.data.*.Command.OutputS3KeyPrefix",
-                    "data_type": "string",
-                    "example_values": [
-                        ""
-                    ]
+                    "data_type": "string"
                 },
                 {
                     "data_path": "action_result.data.*.Command.StatusDetails",
@@ -669,17 +650,11 @@
                 },
                 {
                     "data_path": "action_result.data.*.Command.NotificationConfig.NotificationArn",
-                    "data_type": "string",
-                    "example_values": [
-                        ""
-                    ]
+                    "data_type": "string"
                 },
                 {
                     "data_path": "action_result.data.*.Command.NotificationConfig.NotificationType",
-                    "data_type": "string",
-                    "example_values": [
-                        ""
-                    ]
+                    "data_type": "string"
                 },
                 {
                     "data_path": "action_result.data.*.Command.RequestedDateTime",
@@ -704,17 +679,11 @@
                 },
                 {
                     "data_path": "action_result.data.*.Command.ServiceRole",
-                    "data_type": "string",
-                    "example_values": [
-                        ""
-                    ]
+                    "data_type": "string"
                 },
                 {
                     "data_path": "action_result.data.*.Command.CloudWatchOutputConfig.CloudWatchLogGroupName",
-                    "data_type": "string",
-                    "example_values": [
-                        ""
-                    ]
+                    "data_type": "string"
                 },
                 {
                     "data_path": "action_result.data.*.Command.CloudWatchOutputConfig.CloudWatchOutputEnabled",
@@ -733,17 +702,11 @@
                 },
                 {
                     "data_path": "action_result.data.*.Command.DocumentVersion",
-                    "data_type": "string",
-                    "example_values": [
-                        ""
-                    ]
+                    "data_type": "string"
                 },
                 {
                     "data_path": "action_result.data.*.Command.Comment",
-                    "data_type": "string",
-                    "example_values": [
-                        ""
-                    ]
+                    "data_type": "string"
                 },
                 {
                     "data_path": "action_result.data.*.Command.ExpiresAfter",
@@ -1033,7 +996,7 @@
                     "data_path": "action_result.data.*.Command.OutputS3BucketName",
                     "data_type": "string",
                     "example_values": [
-                        "ssm-app-phantom"
+                        "ssm-phantom-app"
                     ]
                 },
                 {
@@ -1215,7 +1178,7 @@
                     "data_path": "action_result.message",
                     "data_type": "string",
                     "example_values": [
-                        "Status: Successfully executed commands"
+                        "Status: Successfully sent command"
                     ]
                 },
                 {
@@ -1260,7 +1223,7 @@
                     "data_path": "action_result.parameter.output_s3_bucket_name",
                     "data_type": "string",
                     "example_values": [
-                        "ssm-app-phantom"
+                        "ssm-phantom-app"
                     ]
                 },
                 {
@@ -1288,7 +1251,7 @@
                     "data_path": "action_result.summary.status",
                     "data_type": "string",
                     "example_values": [
-                        "Successfully executed commands"
+                        "Successfully sent command"
                     ]
                 },
                 {
@@ -1385,7 +1348,7 @@
                     "data_path": "action_result.data.*.Commands.*.OutputS3BucketName",
                     "data_type": "string",
                     "example_values": [
-                        "ssm-app-phantom"
+                        "ssm-phantom-app"
                     ]
                 },
                 {
@@ -1905,7 +1868,7 @@
                     "data_path": "action_result.data.*.Parameter.Name",
                     "data_type": "string",
                     "example_values": [
-                        "matt-test-parameter"
+                        "test-parameter"
                     ],
                     "column_name": "name",
                     "column_order": "0",
@@ -1953,7 +1916,7 @@
                     "data_path": "action_result.data.*.Parameter.ARN",
                     "data_type": "string",
                     "example_values": [
-                        "arn:aws:ssm:us-east-1:849257271967:parameter/matt-test-parameter"
+                        "arn:aws:ssm:us-east-1:849257271967:parameter/test-parameter"
                     ]
                 },
                 {
@@ -2024,7 +1987,7 @@
                     "data_path": "action_result.parameter.name",
                     "data_type": "string",
                     "example_values": [
-                        "matt-test-parameter"
+                        "test-parameter"
                     ],
                     "contains": [
                         "aws parameter name"
