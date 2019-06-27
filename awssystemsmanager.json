@@ -2053,7 +2053,7 @@
                     "order": 2
                 },
                 "type": {
-                    "description": "The type of parameter that you want to add to the system. Items in StringList must be seperated by a comma (,). SecureString parameters must use an AWS KMS Key ID",
+                    "description": "The type of parameter that you want to add to the system. Items in StringList must be separated by a comma (,). SecureString parameters must use an AWS KMS Key ID",
                     "data_type": "string",
                     "value_list": [
                         "String",
