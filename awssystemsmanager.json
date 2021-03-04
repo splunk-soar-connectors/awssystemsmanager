@@ -9,12 +9,13 @@
     "product_name": "Systems Manager",
     "product_version_regex": ".*",
     "publisher": "Splunk",
-    "license": "Copyright (c) 2019 Splunk Inc.",
-    "app_version": "1.0.5",
+    "license": "Copyright (c) 2019-2021 Splunk Inc.",
+    "app_version": "2.0.0",
     "utctime_updated": "2019-06-27T20:16:01.000000Z",
     "package_name": "phantom_awssystemsmanager",
-    "main_module": "awssystemsmanager_connector.pyc",
-    "min_phantom_version": "4.2.7532",
+    "main_module": "awssystemsmanager_connector.py",
+    "python_version": "3",
+    "min_phantom_version": "4.9.39220",
     "app_wizard_version": "1.0.0",
     "pip_dependencies": {
         "wheel": [
@@ -37,6 +38,26 @@
             {
                 "module": "docutils",
                 "input_file": "wheels/docutils-0.14-py2-none-any.whl"
+            },
+            {
+                "module": "jmespath",
+                "input_file": "wheels/jmespath-0.9.3-py2.py3-none-any.whl"
+            }
+        ]
+    },
+    "pip3_dependencies": {
+        "wheel": [
+            {
+                "module": "boto3",
+                "input_file": "wheels/boto3-1.9.96-py2.py3-none-any.whl"
+            },
+            {
+                "module": "s3transfer",
+                "input_file": "wheels/s3transfer-0.2.0-py2.py3-none-any.whl"
+            },
+            {
+                "module": "botocore",
+                "input_file": "wheels/botocore-1.12.96-py2.py3-none-any.whl"
             },
             {
                 "module": "jmespath",
@@ -85,6 +106,12 @@
                 "AWS GovCloud (US)"
             ],
             "order": 2
+        },
+        "default_s3_bucket": {
+            "description": "Default S3 Buket Name",
+            "data_type": "string",
+            "required": true,
+            "order": 3
         }
     },
     "actions": [
@@ -101,7 +128,7 @@
         {
             "action": "execute program",
             "description": "Runs shell script command on a managed instance",
-            "verbose": "Running a shell script command will automatically write the output into an S3 bucket name of your choice or defaults the bucket name to 'ssm-phantom-app' if no bucket name is provided. If the bucket is nonexistant, this action will create the S3 bucket",
+            "verbose": "Running a shell script command will automatically write the output into an S3 bucket name of your choice or defaults the bucket name to 'ssm-phantom-app' if no bucket name is provided. If the bucket is nonexistant, this action will create the S3 bucket.",
             "type": "generic",
             "identifier": "execute_program",
             "read_only": false,
@@ -119,7 +146,6 @@
                 "platform_type": {
                     "description": "The operating system of the instance",
                     "data_type": "string",
-                    "primary": false,
                     "required": true,
                     "value_list": [
                         "Linux",
@@ -131,43 +157,32 @@
                     "description": "Single command to be executed on the instance",
                     "data_type": "string",
                     "required": true,
-                    "primary": false,
                     "order": 2
                 },
                 "working_directory": {
                     "description": "The path to the working directory on your instance",
                     "data_type": "string",
-                    "required": false,
-                    "primary": true,
                     "order": 3
                 },
                 "timeout_seconds": {
                     "description": "If this time is reached and the command has not already started running, it will not run",
                     "data_type": "numeric",
-                    "required": false,
-                    "primary": false,
                     "order": 4
                 },
                 "comment": {
                     "description": "User-specified information about the command, such as a brief description of what the command should do",
                     "data_type": "string",
-                    "required": false,
-                    "primary": false,
                     "order": 5
                 },
                 "output_s3_bucket_name": {
                     "description": "The name of the existing S3 bucket where command execution responses should be stored",
                     "data_type": "string",
-                    "required": false,
-                    "primary": false,
                     "order": 6
                 },
                 "save_output_to_vault": {
                     "description": "Store the output of the command into the vault",
                     "data_type": "boolean",
-                    "required": false,
                     "default": false,
-                    "primary": false,
                     "order": 7
                 }
             },
@@ -208,7 +223,7 @@
                         "AWS-RunShellScript",
                         "AWS-RunPowerShellScript"
                     ],
-                    "column_name": "document name",
+                    "column_name": "Document Name",
                     "column_order": "2",
                     "contains": [
                         "aws document name"
@@ -239,7 +254,7 @@
                         "i-0ea1454477403286d",
                         "i-0274f8f32148f539f"
                     ],
-                    "column_name": "instance id",
+                    "column_name": "Instance ID",
                     "column_order": "1",
                     "contains": [
                         "aws instance id"
@@ -345,7 +360,7 @@
                         "88e37730-5fa8-48f7-8135-26d19d77d75c",
                         "38c9d6fa-35db-42bf-b694-468bdc9c701c"
                     ],
-                    "column_name": "command id",
+                    "column_name": "Command ID",
                     "column_order": "3",
                     "contains": [
                         "aws command id"
@@ -496,7 +511,7 @@
                     "example_values": [
                         "\r\nPath               \r\n----               \r\nC:\\Windows\\system32\r\n\r\n\r\n"
                     ],
-                    "column_name": "command output",
+                    "column_name": "Command Output",
                     "column_order": "4"
                 },
                 {
@@ -561,7 +576,6 @@
                 "platform_type": {
                     "description": "The operating system of the instance",
                     "data_type": "string",
-                    "primary": false,
                     "required": true,
                     "value_list": [
                         "Linux",
@@ -573,7 +587,6 @@
                     "description": "Full path of the file to download (include filename)",
                     "data_type": "string",
                     "required": true,
-                    "primary": false,
                     "order": 2
                 }
             },
@@ -582,7 +595,8 @@
                     "data_path": "action_result.status",
                     "data_type": "string",
                     "example_values": [
-                        "success"
+                        "success",
+                        "failed"
                     ]
                 },
                 {
@@ -735,7 +749,7 @@
                     "example_values": [
                         "ca9bf311-0cc1-435c-ad87-cd55492f5bff/i-0ea1454477403286d/awsrunShellScript/0.awsrunShellScript/stdout"
                     ],
-                    "column_name": "s3 object key",
+                    "column_name": "S3 Object Key",
                     "column_order": "2"
                 },
                 {
@@ -755,7 +769,7 @@
                     "example_values": [
                         "saver.py"
                     ],
-                    "column_name": "filename",
+                    "column_name": "Filename",
                     "column_order": "0"
                 },
                 {
@@ -854,7 +868,7 @@
                     "contains": [
                         "sha1"
                     ],
-                    "column_name": "vault id",
+                    "column_name": "Vault ID",
                     "column_order": "1"
                 },
                 {
@@ -919,35 +933,26 @@
                     "description": "JSON object. The required and optional parameters specified in the document being run. Example: {\"commands\": [\"ls\"]}",
                     "data_type": "string",
                     "required": true,
-                    "primary": false,
                     "order": 3
                 },
                 "working_directory": {
                     "description": "The path to the working directory on your instance",
                     "data_type": "string",
-                    "required": false,
-                    "primary": true,
                     "order": 4
                 },
                 "timeout_seconds": {
                     "description": "If this time is reached and the command has not already started running, it will not run",
                     "data_type": "numeric",
-                    "required": false,
-                    "primary": false,
                     "order": 5
                 },
                 "comment": {
                     "description": "User-specified information about the command, such as a brief description of what the command should do",
                     "data_type": "string",
-                    "required": false,
-                    "primary": false,
                     "order": 6
                 },
                 "output_s3_bucket_name": {
                     "description": "The name of the S3 bucket where command execution responses should be stored",
                     "data_type": "string",
-                    "required": false,
-                    "primary": false,
                     "order": 7
                 }
             },
@@ -956,7 +961,8 @@
                     "data_path": "action_result.status",
                     "data_type": "string",
                     "example_values": [
-                        "success"
+                        "success",
+                        "failed"
                     ]
                 },
                 {
@@ -986,7 +992,7 @@
                     "example_values": [
                         "AWS-RunShellScript"
                     ],
-                    "column_name": "document name",
+                    "column_name": "Document Name",
                     "column_order": "2",
                     "contains": [
                         "aws document name"
@@ -1016,7 +1022,7 @@
                     "example_values": [
                         "i-0ea1454477403286d"
                     ],
-                    "column_name": "instance id",
+                    "column_name": "Instance ID",
                     "column_order": "1",
                     "contains": [
                         "aws instance id"
@@ -1119,7 +1125,7 @@
                     "example_values": [
                         "3bf78866-3492-4ffa-9fff-62215f8c7b13"
                     ],
-                    "column_name": "command id",
+                    "column_name": "Command ID",
                     "column_order": "0",
                     "contains": [
                         "aws command id"
@@ -1285,7 +1291,6 @@
                     "description": "If provided, lists only the specified command",
                     "data_type": "string",
                     "primary": true,
-                    "required": false,
                     "order": 0,
                     "contains": [
                         "aws command id"
@@ -1295,7 +1300,6 @@
                     "description": "Lists commands issued against this instance ID",
                     "data_type": "string",
                     "primary": true,
-                    "required": false,
                     "order": 1,
                     "contains": [
                         "aws instance id"
@@ -1304,8 +1308,6 @@
                 "max_results": {
                     "description": "The maximum number of items to return for this call",
                     "data_type": "numeric",
-                    "primary": false,
-                    "required": false,
                     "order": 2
                 }
             },
@@ -1314,7 +1316,8 @@
                     "data_path": "action_result.status",
                     "data_type": "string",
                     "example_values": [
-                        "success"
+                        "success",
+                        "failed"
                     ]
                 },
                 {
@@ -1338,7 +1341,7 @@
                     "example_values": [
                         "AWS-RunShellScript"
                     ],
-                    "column_name": "document name",
+                    "column_name": "Document Name",
                     "column_order": "2",
                     "contains": [
                         "aws document name"
@@ -1368,7 +1371,7 @@
                     "example_values": [
                         "i-0ea1454477403286d"
                     ],
-                    "column_name": "instance id",
+                    "column_name": "Instance ID",
                     "column_order": "1",
                     "contains": [
                         "aws instance id"
@@ -1380,7 +1383,7 @@
                     "example_values": [
                         "Success"
                     ],
-                    "column_name": "status",
+                    "column_name": "Status",
                     "column_order": "3"
                 },
                 {
@@ -1405,7 +1408,7 @@
                         "2019-05-22 01:41:52",
                         "2019-05-22 15:46:39"
                     ],
-                    "column_name": "requested date",
+                    "column_name": "Requested Date",
                     "column_order": "4"
                 },
                 {
@@ -1455,7 +1458,7 @@
                     "example_values": [
                         "Checking contents of directory"
                     ],
-                    "column_name": "comment",
+                    "column_name": "Comment",
                     "column_order": "5"
                 },
                 {
@@ -1480,7 +1483,7 @@
                         "c31c1788-5840-4d85-9eaa-58f851572140",
                         "8fbd52dd-ddc9-4206-a49f-810ec50e929e"
                     ],
-                    "column_name": "command id",
+                    "column_name": "Command ID",
                     "column_order": "0",
                     "contains": [
                         "aws command id"
@@ -1642,7 +1645,6 @@
                     "description": "The name of the document to search for (case sensitive)",
                     "data_type": "string",
                     "primary": true,
-                    "required": false,
                     "order": 0,
                     "contains": [
                         "aws document name"
@@ -1651,15 +1653,11 @@
                 "owner": {
                     "description": "The owner of the document to search for",
                     "data_type": "string",
-                    "primary": false,
-                    "required": false,
                     "order": 1
                 },
                 "platform_type": {
                     "description": "The OS platform type that the document can execute on (i.e. Windows, Linux)",
                     "data_type": "string",
-                    "primary": false,
-                    "required": false,
                     "order": 2
                 },
                 "document_type": {
@@ -1672,15 +1670,11 @@
                         "Session",
                         "Package"
                     ],
-                    "primary": false,
-                    "required": false,
                     "order": 3
                 },
                 "max_results": {
                     "description": "The maximum number of items to return for this call",
                     "data_type": "numeric",
-                    "primary": false,
-                    "required": false,
                     "order": 4
                 }
             },
@@ -1689,7 +1683,8 @@
                     "data_path": "action_result.status",
                     "data_type": "string",
                     "example_values": [
-                        "success"
+                        "success",
+                        "failed"
                     ]
                 },
                 {
@@ -1708,7 +1703,7 @@
                     "contains": [
                         "aws document name"
                     ],
-                    "column_name": "name",
+                    "column_name": "Name",
                     "column_order": "0"
                 },
                 {
@@ -1717,7 +1712,7 @@
                     "example_values": [
                         "Linux"
                     ],
-                    "column_name": "platform",
+                    "column_name": "Platform",
                     "column_order": "3"
                 },
                 {
@@ -1733,7 +1728,7 @@
                     "example_values": [
                         "Command"
                     ],
-                    "column_name": "document type",
+                    "column_name": "Document Type",
                     "column_order": "1"
                 },
                 {
@@ -1742,7 +1737,7 @@
                     "example_values": [
                         "Amazon"
                     ],
-                    "column_name": "owner",
+                    "column_name": "Owner",
                     "column_order": "2"
                 },
                 {
@@ -1851,8 +1846,6 @@
                 "with_decryption": {
                     "description": "Check to decrypt values of secure string parameters. This flag is ignored for String and StringList parameter types",
                     "data_type": "boolean",
-                    "primary": false,
-                    "required": false,
                     "order": 1
                 }
             },
@@ -1861,7 +1854,8 @@
                     "data_path": "action_result.status",
                     "data_type": "string",
                     "example_values": [
-                        "success"
+                        "success",
+                        "failed"
                     ]
                 },
                 {
@@ -1870,7 +1864,7 @@
                     "example_values": [
                         "test-parameter"
                     ],
-                    "column_name": "name",
+                    "column_name": "Name",
                     "column_order": "0",
                     "contains": [
                         "aws parameter name"
@@ -1882,7 +1876,7 @@
                     "example_values": [
                         "2019-05-08 15:53:29"
                     ],
-                    "column_name": "last modified date",
+                    "column_name": "Last Modified Date",
                     "column_order": "4"
                 },
                 {
@@ -1891,7 +1885,7 @@
                     "example_values": [
                         "testing values"
                     ],
-                    "column_name": "value",
+                    "column_name": "Value",
                     "column_order": "2"
                 },
                 {
@@ -1900,7 +1894,7 @@
                     "example_values": [
                         1
                     ],
-                    "column_name": "version",
+                    "column_name": "Version",
                     "column_order": "3"
                 },
                 {
@@ -1909,7 +1903,7 @@
                     "example_values": [
                         "String"
                     ],
-                    "column_name": "type",
+                    "column_name": "Type",
                     "column_order": "1"
                 },
                 {
@@ -2041,14 +2035,11 @@
                 "description": {
                     "description": "Information about the parameter that you want to add to the system. Optional but recommended",
                     "data_type": "string",
-                    "primary": false,
-                    "required": false,
                     "order": 1
                 },
                 "value": {
                     "description": "The parameter value that you want to add to the system. Standard parameters have a value limit of 4 KB. Advanced parameters have a value limit of 8 KB",
                     "data_type": "string",
-                    "primary": false,
                     "required": true,
                     "order": 2
                 },
@@ -2060,30 +2051,23 @@
                         "StringList",
                         "SecureString"
                     ],
-                    "primary": false,
                     "required": true,
                     "order": 3
                 },
                 "key_id": {
                     "description": "The KMS Key ID that you want to use to encrypt a SecureString parameter. Defaults to the AWS KMS key automatically assigned to your AWS account if no key ID is provided",
                     "data_type": "string",
-                    "primary": false,
-                    "required": false,
                     "order": 4
                 },
                 "overwrite": {
                     "description": "Overwrite an existing parameter",
                     "data_type": "boolean",
                     "default": false,
-                    "primary": false,
-                    "required": false,
                     "order": 5
                 },
                 "allowed_pattern": {
                     "description": "A regular expression used to validate the parameter value. For example, for String types with values restricted to numbers, you can specify the following: AllowedPattern=^d+$",
                     "data_type": "string",
-                    "primary": false,
-                    "required": false,
                     "order": 6
                 }
             },
@@ -2092,7 +2076,8 @@
                     "data_path": "action_result.status",
                     "data_type": "string",
                     "example_values": [
-                        "success"
+                        "success",
+                        "failed"
                     ]
                 },
                 {
@@ -2101,7 +2086,7 @@
                     "example_values": [
                         1
                     ],
-                    "column_name": "version",
+                    "column_name": "Version",
                     "column_order": "2"
                 },
                 {
@@ -2166,7 +2151,7 @@
                     "example_values": [
                         "phantom"
                     ],
-                    "column_name": "name",
+                    "column_name": "Name",
                     "column_order": "0",
                     "contains": [
                         "aws parameter name"
@@ -2199,7 +2184,7 @@
                     "example_values": [
                         "SecureString"
                     ],
-                    "column_name": "type",
+                    "column_name": "Type",
                     "column_order": "1"
                 },
                 {
@@ -2267,7 +2252,8 @@
                     "data_path": "action_result.status",
                     "data_type": "string",
                     "example_values": [
-                        "success"
+                        "success",
+                        "failed"
                     ]
                 },
                 {
@@ -2298,7 +2284,7 @@
                     "example_values": [
                         "i-0274f8f32148f539f"
                     ],
-                    "column_name": "instance id",
+                    "column_name": "Instance ID",
                     "column_order": "0",
                     "contains": [
                         "aws instance id"
@@ -2310,7 +2296,7 @@
                     "example_values": [
                         "172.31.84.173"
                     ],
-                    "column_name": "ip",
+                    "column_name": "IP",
                     "column_order": "2",
                     "contains": [
                         "ip"

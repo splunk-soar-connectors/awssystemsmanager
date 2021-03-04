@@ -1,5 +1,5 @@
 # File: awssystemsmanager_consts.py
-# Copyright (c) 2019 Splunk Inc.
+# Copyright (c) 2019-2021 Splunk Inc.
 #
 # SPLUNK CONFIDENTIAL - Use or disclosure of this material in whole or in part
 # without a valid written license from Splunk Inc. is PROHIBITED.
@@ -8,6 +8,7 @@
 SSM_JSON_ACCESS_KEY = "access_key"
 SSM_JSON_SECRET_KEY = "secret_key"
 SSM_JSON_REGION = "region"
+SSM_JSON_DEFAULT_S3_BUCKET = "default_s3_bucket"
 
 SSM_REGION_DICT = {
         "US East (N. Virginia)": "us-east-1",

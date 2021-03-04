@@ -1,5 +1,5 @@
 # File: awssystemsmanager_connector.py
-# Copyright (c) 2019 Splunk Inc.
+# Copyright (c) 2019-2021 Splunk Inc.
 #
 # SPLUNK CONFIDENTIAL - Use or disclosure of this material in whole or in part
 # without a valid written license from Splunk Inc. is PROHIBITED.
@@ -15,11 +15,13 @@ from awssystemsmanager_consts import *
 from boto3 import client
 from datetime import datetime
 from botocore.config import Config
+from bs4 import UnicodeDammit
 import botocore.response as br
 import botocore.paginate as bp
 import requests
 import json
 import os
+import sys
 import tempfile
 import time
 import base64
@@ -41,7 +43,9 @@ class AwsSystemsManagerConnector(BaseConnector):
         self._region = None
         self._access_key = None
         self._secret_key = None
+        self._default_s3_bucket = None
         self._proxy = None
+        self._python_version = None
 
     def _sanitize_data(self, cur_obj):
 
@@ -53,7 +57,7 @@ class AwsSystemsManagerConnector(BaseConnector):
 
         if isinstance(cur_obj, dict):
             new_dict = {}
-            for k, v in cur_obj.iteritems():
+            for k, v in cur_obj.items():
                 if isinstance(v, br.StreamingBody):
                     content = v.read()
                     new_dict[k] = json.loads(content)
@@ -81,6 +85,21 @@ class AwsSystemsManagerConnector(BaseConnector):
 
         return cur_obj
 
+    def _handle_py_ver_compat_for_input_str(self, input_str):
+        """
+        This method returns the encoded|original string based on the Python version.
+
+        :param input_str: Input string to be processed
+        :return: input_str (Processed input string based on following logic 'input_str - Python 3; encoded input_str - Python 2')
+        """
+
+        try:
+            if input_str and self._python_version < 3:
+                input_str = UnicodeDammit(input_str).unicode_markup.encode('utf-8')
+        except:
+            self.debug_print("Error occurred while handling python 2to3 compatibility for the input string")
+        return input_str
+
     def _make_boto_call(self, action_result, method, paginate=False, empty_payload=False, **kwargs):
 
         if paginate is False:
@@ -93,7 +112,7 @@ class AwsSystemsManagerConnector(BaseConnector):
                 if empty_payload:
                     resp_json['Payload'] = {'body': "", 'statusCode': resp_json['StatusCode']}
             except Exception as e:
-                exception_message = e.args[0].encode('utf-8').strip()
+                exception_message = self._handle_py_ver_compat_for_input_str(e.args[0]).strip()
                 if 'BucketAlreadyExists' in exception_message:
                     return phantom.APP_SUCCESS, None
                 return RetVal(action_result.set_status(phantom.APP_ERROR, 'boto3 call to SSM failed', exception_message), None)
@@ -116,7 +135,7 @@ class AwsSystemsManagerConnector(BaseConnector):
 
         if isinstance(cur_obj, dict):
             new_dict = {}
-            for k, v in cur_obj.iteritems():
+            for k, v in cur_obj.items():
                 new_dict[k] = self._sanatize_dates(v)
             return new_dict
 
@@ -141,8 +160,10 @@ class AwsSystemsManagerConnector(BaseConnector):
         try:
             resp_json = boto_func(**kwargs)
         except Exception as e:
+            self.debug_print("make_s3_boto_call -- EXCEPTION ---> :: {}".format(e))
             return RetVal(action_result.set_status(phantom.APP_ERROR, 'boto3 call to S3 failed', e), None)
 
+        self.debug_print("make_s3_boto_call -- resp :: {}".format(resp_json))
         return phantom.APP_SUCCESS, resp_json
 
     def _create_client(self, action_result):
@@ -219,13 +240,16 @@ class AwsSystemsManagerConnector(BaseConnector):
         location = {'LocationConstraint': SSM_REGION_DICT[self.get_config()['region']]}
 
         if output_s3_bucket_name is None:
-            output_s3_bucket_name = 'ssm-phantom-app'
+            output_s3_bucket_name = self._default_s3_bucket
 
         # boto3 bug
         if location['LocationConstraint'] == 'us-east-1':
             ret_val, resp_json = self._make_boto_call(action_result, 'create_bucket', Bucket=output_s3_bucket_name)
         else:
             ret_val, resp_json = self._make_boto_call(action_result, 'create_bucket', Bucket=output_s3_bucket_name, CreateBucketConfiguration=location)
+        self.debug_print("Output bucket name  --->{}".format(output_s3_bucket_name))
+        self.debug_print("LOCATION  --->{}".format(location))
+        self.debug_print("RESPONSE OF --->{}\n{}".format(ret_val, resp_json))
 
         return ret_val, output_s3_bucket_name
 
@@ -251,6 +275,8 @@ class AwsSystemsManagerConnector(BaseConnector):
         result_json['output'] = file_data
 
         if save_output_to_vault:
+            if hasattr(file_data, 'decode'):
+                file_data = file_data.decode()
             if hasattr(Vault, 'get_vault_tmp_dir'):
                 vault_path = Vault.get_vault_tmp_dir()
             else:
@@ -302,6 +328,14 @@ class AwsSystemsManagerConnector(BaseConnector):
             self.save_progress("Test Connectivity Failed.")
             return action_result.get_status()
 
+        output_s3_bucket_name = self._default_s3_bucket
+
+        if self._get_s3_bucket(action_result, output_s3_bucket_name) is False:
+            ret_val, output_s3_bucket_name = self._create_s3_bucket(action_result, output_s3_bucket_name)
+            if ret_val is False:
+                self.save_progress("Test Connectivity Failed. Please enter other bucket name.")
+                return action_result.get_status()
+
         # Return success
         self.save_progress("Test Connectivity Passed")
         return action_result.set_status(phantom.APP_SUCCESS)
@@ -335,10 +369,17 @@ class AwsSystemsManagerConnector(BaseConnector):
             command = param['command']
             file_name = None
             save_output_to_vault = param.get('save_output_to_vault')
+
+        output_s3_bucket_name = param.get('output_s3_bucket_name')
         working_directory = param.get('working_directory')
         timeout_seconds = param.get('timeout_seconds')
         comment = param.get('comment')
-        output_s3_bucket_name = param.get('output_s3_bucket_name')
+
+        self.debug_print("Output bucket name --->{}".format(output_s3_bucket_name))
+        if not output_s3_bucket_name:
+            output_s3_bucket_name = self._default_s3_bucket
+
+        self.debug_print("Output bucket name --->{}".format(output_s3_bucket_name))
         # Create S3 bucket to store command output if it does not already exist
         if self._get_s3_bucket(action_result, output_s3_bucket_name) is False:
             ret_val, output_s3_bucket_name = self._create_s3_bucket(action_result, output_s3_bucket_name)
@@ -365,9 +406,12 @@ class AwsSystemsManagerConnector(BaseConnector):
         if not self._create_client(action_result):
             return action_result.get_status()
 
+        self.debug_print("WORKING DIR --->{}".format(working_directory))
+        self.debug_print("COMMAND --->{}".format(command))
+        self.debug_print("S3 BUCKET --->{}".format(output_s3_bucket_name))
         # Executes the shell program via SSM boto call
         ret_val, response = self._make_boto_call(action_result, 'send_command', **args)
-
+        self.debug_print("RESPONSE OF ---->{}".format(response))
         if (phantom.is_fail(ret_val)):
             return action_result.get_status()
 
@@ -381,14 +425,16 @@ class AwsSystemsManagerConnector(BaseConnector):
 
         try:
             ret_val, resp_json = self._get_s3_object(action_result, output_s3_bucket_name, output_s3_object_key, save_output_to_vault, file_name)
-        except Exception:
+        except Exception as e:
+            self.debug_print("EXCEPTION IS 1--->{}".format(str(e)))
             # Look for stderr file if stdout file was not found. If this is get_file action, then action fails with a no file found message.
             try:
                 if self.get_action_identifier() == 'get_file':
                     return action_result.set_status(phantom.APP_ERROR, "{}: No such file found. Please check full file path (include filename)".format(file_path))
                 output_s3_object_key = output_s3_object_key.replace('stdout', 'stderr')
                 ret_val, resp_json = self._get_s3_object(action_result, output_s3_bucket_name, output_s3_object_key, save_output_to_vault, file_name)
-            except Exception:
+            except Exception as e:
+                self.debug_print("EXCEPTION IS 2--->{}".format(str(e)))
                 return action_result.set_status(phantom.APP_ERROR, "Failed to get S3 object")
 
         result_json["File"] = resp_json
@@ -425,7 +471,7 @@ class AwsSystemsManagerConnector(BaseConnector):
         try:
             parameters = json.loads(param['parameters'])
         except Exception as e:
-            return RetVal(action_result.set_status(phantom.APP_ERROR, u"Invalid JSON for Parameters. Error: {0}".format(str(e))), None)
+            return RetVal(action_result.set_status(phantom.APP_ERROR, "Invalid JSON for Parameters. Error: {0}".format(str(e))), None)
         working_directory = param.get('working_directory')
         timeout_seconds = param.get('timeout_seconds')
         comment = param.get('comment')
@@ -484,7 +530,7 @@ class AwsSystemsManagerConnector(BaseConnector):
             max_results = param.get('max_results')
             limit = None
             if max_results == 0:
-                return action_result.set_status(phantom.APP_ERROR, u"MaxResults parameter must be greater than 0")
+                return action_result.set_status(phantom.APP_ERROR, "MaxResults parameter must be greater than 0")
             elif max_results > 50:
                 limit = max_results
                 max_results = None
@@ -556,7 +602,7 @@ class AwsSystemsManagerConnector(BaseConnector):
             # This flag is to handle the special case where max_results is a number greater than 50
             flag = False
             if max_results == 0:
-                return action_result.set_status(phantom.APP_ERROR, u"MaxResults parameter must be greater than 0")
+                return action_result.set_status(phantom.APP_ERROR, "MaxResults parameter must be greater than 0")
             elif max_results > 50:
                 limit = max_results
                 max_results = None
@@ -746,6 +792,7 @@ class AwsSystemsManagerConnector(BaseConnector):
         self.debug_print("action_id", self.get_action_identifier())
 
         if action_id == 'test_connectivity':
+            self.debug_print("test parameter --->{}".format(param))
             ret_val = self._handle_test_connectivity(param)
 
         elif action_id == 'list_commands':
@@ -780,6 +827,12 @@ class AwsSystemsManagerConnector(BaseConnector):
         # that needs to be accessed across actions
         self._state = self.load_state()
 
+        # Fetching the Python major version
+        try:
+            self._python_version = int(sys.version_info[0])
+        except:
+            return self.set_status(phantom.APP_ERROR, "Error occurred while getting the Phantom server's Python major version.")
+
         # get the asset config
         config = self.get_config()
 
@@ -787,6 +840,8 @@ class AwsSystemsManagerConnector(BaseConnector):
             self._access_key = config.get(SSM_JSON_ACCESS_KEY)
         if SSM_JSON_SECRET_KEY in config:
             self._secret_key = config.get(SSM_JSON_SECRET_KEY)
+        if SSM_JSON_DEFAULT_S3_BUCKET in config:
+            self._default_s3_bucket = config.get(SSM_JSON_DEFAULT_S3_BUCKET)
 
         self._region = SSM_REGION_DICT.get(config[SSM_JSON_REGION])
 
@@ -834,7 +889,7 @@ if __name__ == '__main__':
     if (username and password):
         login_url = BaseConnector._get_phantom_base_url() + "login"
         try:
-            print ("Accessing the Login page")
+            print("Accessing the Login page")
             r = requests.get(login_url, verify=False)
             csrftoken = r.cookies['csrftoken']
 
@@ -847,11 +902,11 @@ if __name__ == '__main__':
             headers['Cookie'] = 'csrftoken=' + csrftoken
             headers['Referer'] = login_url
 
-            print ("Logging into Platform to get the session id")
+            print("Logging into Platform to get the session id")
             r2 = requests.post(login_url, verify=False, data=data, headers=headers)
             session_id = r2.cookies['sessionid']
         except Exception as e:
-            print ("Unable to get session id from the platform. Error: " + str(e))
+            print("Unable to get session id from the platform. Error: " + str(e))
             exit(1)
 
     with open(args.input_test_json) as f:
@@ -867,6 +922,6 @@ if __name__ == '__main__':
             connector._set_csrf_info(csrftoken, headers['Referer'])
 
         ret_val = connector._handle_action(json.dumps(in_json), None)
-        print (json.dumps(json.loads(ret_val), indent=4))
+        print(json.dumps(json.loads(ret_val), indent=4))
 
     exit(0)
