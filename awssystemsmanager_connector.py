@@ -160,7 +160,6 @@ class AwsSystemsManagerConnector(BaseConnector):
         try:
             resp_json = boto_func(**kwargs)
         except Exception as e:
-            self.debug_print("make_s3_boto_call -- EXCEPTION ---> :: {}".format(e))
             return RetVal(action_result.set_status(phantom.APP_ERROR, 'boto3 call to S3 failed', e), None)
 
         self.debug_print("make_s3_boto_call -- resp :: {}".format(resp_json))
@@ -239,7 +238,7 @@ class AwsSystemsManagerConnector(BaseConnector):
 
         location = {'LocationConstraint': SSM_REGION_DICT[self.get_config()['region']]}
 
-        if output_s3_bucket_name is None:
+        if not output_s3_bucket_name:
             output_s3_bucket_name = self._default_s3_bucket
 
         # boto3 bug
@@ -247,9 +246,6 @@ class AwsSystemsManagerConnector(BaseConnector):
             ret_val, resp_json = self._make_boto_call(action_result, 'create_bucket', Bucket=output_s3_bucket_name)
         else:
             ret_val, resp_json = self._make_boto_call(action_result, 'create_bucket', Bucket=output_s3_bucket_name, CreateBucketConfiguration=location)
-        self.debug_print("Output bucket name  --->{}".format(output_s3_bucket_name))
-        self.debug_print("LOCATION  --->{}".format(location))
-        self.debug_print("RESPONSE OF --->{}\n{}".format(ret_val, resp_json))
 
         return ret_val, output_s3_bucket_name
 
@@ -375,11 +371,9 @@ class AwsSystemsManagerConnector(BaseConnector):
         timeout_seconds = param.get('timeout_seconds')
         comment = param.get('comment')
 
-        self.debug_print("Output bucket name --->{}".format(output_s3_bucket_name))
         if not output_s3_bucket_name:
             output_s3_bucket_name = self._default_s3_bucket
 
-        self.debug_print("Output bucket name --->{}".format(output_s3_bucket_name))
         # Create S3 bucket to store command output if it does not already exist
         if self._get_s3_bucket(action_result, output_s3_bucket_name) is False:
             ret_val, output_s3_bucket_name = self._create_s3_bucket(action_result, output_s3_bucket_name)
@@ -406,12 +400,8 @@ class AwsSystemsManagerConnector(BaseConnector):
         if not self._create_client(action_result):
             return action_result.get_status()
 
-        self.debug_print("WORKING DIR --->{}".format(working_directory))
-        self.debug_print("COMMAND --->{}".format(command))
-        self.debug_print("S3 BUCKET --->{}".format(output_s3_bucket_name))
         # Executes the shell program via SSM boto call
         ret_val, response = self._make_boto_call(action_result, 'send_command', **args)
-        self.debug_print("RESPONSE OF ---->{}".format(response))
         if (phantom.is_fail(ret_val)):
             return action_result.get_status()
 
@@ -425,16 +415,14 @@ class AwsSystemsManagerConnector(BaseConnector):
 
         try:
             ret_val, resp_json = self._get_s3_object(action_result, output_s3_bucket_name, output_s3_object_key, save_output_to_vault, file_name)
-        except Exception as e:
-            self.debug_print("EXCEPTION IS 1--->{}".format(str(e)))
+        except Exception:
             # Look for stderr file if stdout file was not found. If this is get_file action, then action fails with a no file found message.
             try:
                 if self.get_action_identifier() == 'get_file':
                     return action_result.set_status(phantom.APP_ERROR, "{}: No such file found. Please check full file path (include filename)".format(file_path))
                 output_s3_object_key = output_s3_object_key.replace('stdout', 'stderr')
                 ret_val, resp_json = self._get_s3_object(action_result, output_s3_bucket_name, output_s3_object_key, save_output_to_vault, file_name)
-            except Exception as e:
-                self.debug_print("EXCEPTION IS 2--->{}".format(str(e)))
+            except Exception:
                 return action_result.set_status(phantom.APP_ERROR, "Failed to get S3 object")
 
         result_json["File"] = resp_json
@@ -792,7 +780,6 @@ class AwsSystemsManagerConnector(BaseConnector):
         self.debug_print("action_id", self.get_action_identifier())
 
         if action_id == 'test_connectivity':
-            self.debug_print("test parameter --->{}".format(param))
             ret_val = self._handle_test_connectivity(param)
 
         elif action_id == 'list_commands':
