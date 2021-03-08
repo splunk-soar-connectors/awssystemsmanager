@@ -162,7 +162,6 @@ class AwsSystemsManagerConnector(BaseConnector):
         except Exception as e:
             return RetVal(action_result.set_status(phantom.APP_ERROR, 'boto3 call to S3 failed', e), None)
 
-        self.debug_print("make_s3_boto_call -- resp :: {}".format(resp_json))
         return phantom.APP_SUCCESS, resp_json
 
     def _create_client(self, action_result):
@@ -272,7 +271,7 @@ class AwsSystemsManagerConnector(BaseConnector):
 
         if save_output_to_vault:
             if hasattr(file_data, 'decode'):
-                file_data = file_data.decode()
+                file_data = file_data.decode('utf-8')
             if hasattr(Vault, 'get_vault_tmp_dir'):
                 vault_path = Vault.get_vault_tmp_dir()
             else:
@@ -323,14 +322,6 @@ class AwsSystemsManagerConnector(BaseConnector):
         if (phantom.is_fail(ret_val)):
             self.save_progress("Test Connectivity Failed.")
             return action_result.get_status()
-
-        output_s3_bucket_name = self._default_s3_bucket
-
-        if self._get_s3_bucket(action_result, output_s3_bucket_name) is False:
-            ret_val, output_s3_bucket_name = self._create_s3_bucket(action_result, output_s3_bucket_name)
-            if ret_val is False:
-                self.save_progress("Test Connectivity Failed. Please enter other bucket name.")
-                return action_result.get_status()
 
         # Return success
         self.save_progress("Test Connectivity Passed")
@@ -402,6 +393,7 @@ class AwsSystemsManagerConnector(BaseConnector):
 
         # Executes the shell program via SSM boto call
         ret_val, response = self._make_boto_call(action_result, 'send_command', **args)
+
         if (phantom.is_fail(ret_val)):
             return action_result.get_status()
 
@@ -446,6 +438,15 @@ class AwsSystemsManagerConnector(BaseConnector):
         # Add an action result object to self (BaseConnector) to represent the action for this param
         action_result = self.add_action_result(ActionResult(dict(param)))
 
+        output_s3_bucket_name = param.get('output_s3_bucket_name')
+        output_s3_key_prefix = param.get('output_s3_key_prefix')
+        if output_s3_bucket_name:
+            # Create S3 bucket to store command output if it does not already exist
+            if self._get_s3_bucket(action_result, output_s3_bucket_name) is False:
+                ret_val, output_s3_bucket_name = self._create_s3_bucket(action_result, output_s3_bucket_name)
+                if ret_val is False:
+                    return action_result.set_status(phantom.APP_ERROR, "Failed to create S3 bucket")
+
         if not self._create_client(action_result):
             return action_result.get_status()
 
@@ -463,8 +464,6 @@ class AwsSystemsManagerConnector(BaseConnector):
         working_directory = param.get('working_directory')
         timeout_seconds = param.get('timeout_seconds')
         comment = param.get('comment')
-        output_s3_bucket_name = param.get('output_s3_bucket_name')
-        output_s3_key_prefix = param.get('output_s3_key_prefix')
 
         args = {
             'InstanceIds': [instance_id],
@@ -893,7 +892,7 @@ if __name__ == '__main__':
             r2 = requests.post(login_url, verify=False, data=data, headers=headers)
             session_id = r2.cookies['sessionid']
         except Exception as e:
-            print("Unable to get session id from the platform. Error: " + str(e))
+            print("Unable to get session id from the platform. Error: {}".format(str(e)))
             exit(1)
 
     with open(args.input_test_json) as f:

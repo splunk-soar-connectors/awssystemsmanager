@@ -108,7 +108,7 @@
             "order": 2
         },
         "default_s3_bucket": {
-            "description": "Default S3 Buket Name",
+            "description": "Default S3 Bucket Name",
             "data_type": "string",
             "required": true,
             "order": 3
@@ -128,7 +128,7 @@
         {
             "action": "execute program",
             "description": "Runs shell script command on a managed instance",
-            "verbose": "Running a shell script command will automatically write the output into an S3 bucket name of your choice or defaults the bucket name that provide while Asset Congiguration if no bucket name is provided. If the bucket is nonexistant, this action will create the S3 bucket.",
+            "verbose": "Running a shell script command will automatically write the output into an S3 bucket name of your choice or defaults the bucket name to the 'default_s3_bucket' asset congiguration parameter if no bucket name is provided. If the bucket is non-existent, this action will create the S3 bucket.",
             "type": "generic",
             "identifier": "execute_program",
             "read_only": false,
@@ -558,7 +558,7 @@
         },
         {
             "action": "get file",
-            "description": "Retrieve a file from an AWS instance and save it to the vault and default bucket.",
+            "description": "Retrieve a file from an AWS instance and save it to the vault",
             "type": "generic",
             "identifier": "get_file",
             "read_only": false,
@@ -894,6 +894,7 @@
         {
             "action": "run document",
             "description": "Runs command using a public or custom SSM Document on one or more managed instances",
+            "verbose": "The output of the action will be stored into an S3 bucket, if provided. If the bucket is non-existent, this action will create the S3 bucket.",
             "type": "generic",
             "identifier": "run_document",
             "read_only": false,

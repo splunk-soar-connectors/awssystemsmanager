@@ -14,6 +14,14 @@ Upon installing AWS Systems Manager and configuring your asset, you will want to
   <li>Ability to read and write to S3 buckets</li>
 </ul>
 
+<h2> Playbook Backward Compatibility</h2>
+<ul>
+  <li> A new asset configuration parameter has been added. Hence, it is requested to the end-user to please update their existing assets and  playbooks accordingly.</li>
+    <ul>
+      <li> Default S3 Bucket Name: This parameter defines the default AWS S3 bucket to be used for writing the output of the <b>get file</b> and the <b>execute program</b> actions. For performance optimality, the <b>test connectivity</b> action does not validate this parameter.</li>
+    <ul>
+</ul>
+
 By default, AWS Systems Manager does not have permission to perform actions on your instances. You must make sure to attach the AmazonEC2RoleforSSM IAM policy to the instance that you want to manage with SSM.
 
 For more information on setting up your account and instances with SSM privileges, visit the <a href="https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/tutorial_run_command.html">AWS tutorial</a>.
