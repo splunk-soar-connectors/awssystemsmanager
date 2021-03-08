@@ -188,6 +188,27 @@
             },
             "output": [
                 {
+                    "data_path": "action_result.data.*.ResponseMetadata.HTTPHeaders.server", 
+                    "data_type": "string", 
+                    "example_values": [
+                        "Server"
+                    ]
+                }, 
+                {
+                    "data_path": "action_result.data.*.ResponseMetadata.HTTPHeaders.connection", 
+                    "data_type": "string", 
+                    "example_values": [
+                        "keep-alive"
+                    ]
+                }, 
+                {
+                    "data_path": "action_result.data.*.File.s3_object_key", 
+                    "data_type": "string", 
+                    "example_values": [
+                        "38ce5c4b-ab2d-4558-a575-50c660c717a2/i-09b82292b88337969/awsrunShellScript/0.awsrunShellScript/stdout"
+                    ]
+                },
+                {
                     "data_path": "action_result.status",
                     "data_type": "string",
                     "example_values": [
@@ -592,6 +613,20 @@
             },
             "output": [
                 {
+                    "data_path": "action_result.data.*.ResponseMetadata.HTTPHeaders.server", 
+                    "data_type": "string", 
+                    "example_values": [
+                        "Server"
+                    ]
+                }, 
+                {
+                    "data_path": "action_result.data.*.ResponseMetadata.HTTPHeaders.connection", 
+                    "data_type": "string", 
+                    "example_values": [
+                        "keep-alive"
+                    ]
+                },
+                {
                     "data_path": "action_result.status",
                     "data_type": "string",
                     "example_values": [
@@ -959,6 +994,20 @@
             },
             "output": [
                 {
+                    "data_path": "action_result.data.*.ResponseMetadata.HTTPHeaders.server", 
+                    "data_type": "string", 
+                    "example_values": [
+                        "Server"
+                    ]
+                }, 
+                {
+                    "data_path": "action_result.data.*.ResponseMetadata.HTTPHeaders.connection", 
+                    "data_type": "string", 
+                    "example_values": [
+                        "keep-alive"
+                    ]
+                },
+                {
                     "data_path": "action_result.status",
                     "data_type": "string",
                     "example_values": [
@@ -1313,6 +1362,27 @@
                 }
             },
             "output": [
+                {
+                    "data_path": "action_result.data.*.Commands.*.Targets.*.Key", 
+                    "data_type": "string", 
+                    "example_values": [
+                        "InstanceIds"
+                    ]
+                }, 
+                {
+                    "data_path": "action_result.data.*.ResponseMetadata.HTTPHeaders.server", 
+                    "data_type": "string", 
+                    "example_values": [
+                        "Server"
+                    ]
+                }, 
+                {
+                    "data_path": "action_result.data.*.ResponseMetadata.HTTPHeaders.connection", 
+                    "data_type": "string", 
+                    "example_values": [
+                        "keep-alive"
+                    ]
+                },
                 {
                     "data_path": "action_result.status",
                     "data_type": "string",
@@ -1852,6 +1922,20 @@
             },
             "output": [
                 {
+                    "data_path": "action_result.data.*.ResponseMetadata.HTTPHeaders.server", 
+                    "data_type": "string", 
+                    "example_values": [
+                        "Server"
+                    ]
+                }, 
+                {
+                    "data_path": "action_result.data.*.ResponseMetadata.HTTPHeaders.connection", 
+                    "data_type": "string", 
+                    "example_values": [
+                        "keep-alive"
+                    ]
+                },
+                {
                     "data_path": "action_result.status",
                     "data_type": "string",
                     "example_values": [
@@ -2074,6 +2158,20 @@
             },
             "output": [
                 {
+                    "data_path": "action_result.data.*.ResponseMetadata.HTTPHeaders.server", 
+                    "data_type": "string", 
+                    "example_values": [
+                        "Server"
+                    ]
+                }, 
+                {
+                    "data_path": "action_result.data.*.ResponseMetadata.HTTPHeaders.connection", 
+                    "data_type": "string", 
+                    "example_values": [
+                        "keep-alive"
+                    ]
+                },
+                {
                     "data_path": "action_result.status",
                     "data_type": "string",
                     "example_values": [
@@ -2249,6 +2347,55 @@
                 }
             },
             "output": [
+                {
+                    "data_path": "action_result.data.*.ResponseMetadata.HTTPHeaders.server", 
+                    "data_type": "string", 
+                    "example_values": [
+                        "Server"
+                    ]
+                }, 
+                {
+                    "data_path": "action_result.data.*.ResponseMetadata.HTTPHeaders.connection", 
+                    "data_type": "string", 
+                    "example_values": [
+                        "keep-alive"
+                    ]
+                }, 
+                {
+                    "data_path": "action_result.data.*.InstanceInformationList.*.LastSuccessfulAssociationExecutionDate", 
+                    "data_type": "string", 
+                    "example_values": [
+                        "2021-03-01 05:01:53"
+                    ]
+                }, 
+                {
+                    "data_path": "action_result.data.*.InstanceInformationList.*.AssociationStatus", 
+                    "data_type": "string", 
+                    "example_values": [
+                        "Success"
+                    ]
+                }, 
+                {
+                    "data_path": "action_result.data.*.InstanceInformationList.*.LastAssociationExecutionDate", 
+                    "data_type": "string", 
+                    "example_values": [
+                        "2021-03-01 05:01:53"
+                    ]
+                }, 
+                {
+                    "data_path": "action_result.data.*.InstanceInformationList.*.AssociationOverview.DetailedStatus", 
+                    "data_type": "string", 
+                    "example_values": [
+                        "Success"
+                    ]
+                }, 
+                {
+                    "data_path": "action_result.data.*.InstanceInformationList.*.AssociationOverview.InstanceAssociationStatusAggregatedCount.Success", 
+                    "data_type": "numeric", 
+                    "example_values": [
+                        4
+                    ]
+                },
                 {
                     "data_path": "action_result.status",
                     "data_type": "string",
