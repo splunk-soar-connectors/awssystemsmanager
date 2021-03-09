@@ -9,6 +9,7 @@ import phantom.app as phantom
 from phantom.base_connector import BaseConnector
 from phantom.action_result import ActionResult
 from phantom.vault import Vault
+import phantom.rules as ph_rules
 
 # Usage of the consts file is recommended
 from awssystemsmanager_consts import *
@@ -286,20 +287,19 @@ class AwsSystemsManagerConnector(BaseConnector):
             try:
                 # This conditional means 'get file' action has been called. This updates the correct filename that is written into the vault
                 if file_name:
-                    vault_ret = Vault.add_attachment(file_path, self.get_container_id(), file_name)
+                    success, message, vault_id = ph_rules.vault_add(file_location=file_path, container=self.get_container_id(), file_name=file_name)
                     result_json['filename'] = file_name
                     # We do not need to return output for 'get file' action
                     result_json.pop('output', None)
                 # This conditional means 'execute program' action has been called. This will name the file as either 'stdout' or 'stderr' into the vault
                 else:
-                    vault_ret = Vault.add_attachment(file_path, self.get_container_id(), os.path.basename(output_s3_object_key))
+                    success, message, vault_id = ph_rules.vault_add(file_location=file_path, container=self.get_container_id(), file_name=os.path.basename(output_s3_object_key))
                     result_json['filename'] = os.path.basename(output_s3_object_key)
             except Exception as e:
                 return action_result.set_status(phantom.APP_ERROR, "Could not file to vault: {0}".format(e))
 
-            if not vault_ret.get('succeeded'):
-                return action_result.set_status(phantom.APP_ERROR, "Could not save file to vault: {0}".format(vault_ret.get('message', "Unknown Error")))
-            vault_id = vault_ret[phantom.APP_JSON_HASH]
+            if not success:
+                return action_result.set_status(phantom.APP_ERROR, "Could not save file to vault: {0}".format(message))
             result_json['vault_id'] = vault_id
             action_result.set_summary({"created_vault_id": vault_id})
 
@@ -518,7 +518,7 @@ class AwsSystemsManagerConnector(BaseConnector):
             limit = None
             if max_results == 0:
                 return action_result.set_status(phantom.APP_ERROR, "MaxResults parameter must be greater than 0")
-            elif max_results > 50:
+            elif max_results is not None and max_results > 50:
                 limit = max_results
                 max_results = None
             next_token = param.get('next_token')
@@ -590,7 +590,7 @@ class AwsSystemsManagerConnector(BaseConnector):
             flag = False
             if max_results == 0:
                 return action_result.set_status(phantom.APP_ERROR, "MaxResults parameter must be greater than 0")
-            elif max_results > 50:
+            elif max_results is not None and max_results > 50:
                 limit = max_results
                 max_results = None
                 flag = True
@@ -646,7 +646,7 @@ class AwsSystemsManagerConnector(BaseConnector):
 
             if next_token and max_results is None:
                 param['next_token'] = response['NextToken']
-            elif num_documents < max_results and next_token:
+            elif max_results is not None and num_documents < max_results and next_token:
                 param['next_token'] = response['NextToken']
             else:
                 # Add a dictionary that is made up of the most important values from data into the summary
