@@ -440,12 +440,13 @@ class AwsSystemsManagerConnector(BaseConnector):
 
         output_s3_bucket_name = param.get('output_s3_bucket_name')
         output_s3_key_prefix = param.get('output_s3_key_prefix')
+
         if output_s3_bucket_name:
             # Create S3 bucket to store command output if it does not already exist
             if self._get_s3_bucket(action_result, output_s3_bucket_name) is False:
                 ret_val, output_s3_bucket_name = self._create_s3_bucket(action_result, output_s3_bucket_name)
                 if ret_val is False:
-                    return action_result.set_status(phantom.APP_ERROR, "Failed to create S3 bucket")
+                    return action_result.get_status()
 
         if not self._create_client(action_result):
             return action_result.get_status()
