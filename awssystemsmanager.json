@@ -303,7 +303,7 @@
                         "38c9d6fa-35db-42bf-b694-468bdc9c701c"
                     ],
                     "column_name": "Command ID",
-                    "column_order": "3",
+                    "column_order": 3,
                     "contains": [
                         "aws command id"
                     ]
@@ -337,7 +337,7 @@
                         "AWS-RunPowerShellScript"
                     ],
                     "column_name": "Document Name",
-                    "column_order": "2",
+                    "column_order": 2,
                     "contains": [
                         "aws document name"
                     ]
@@ -369,7 +369,7 @@
                         "i-0274f8f32148f539f"
                     ],
                     "column_name": "Instance ID",
-                    "column_order": "1",
+                    "column_order": 1,
                     "contains": [
                         "aws instance id"
                     ]
@@ -468,7 +468,7 @@
                         "\r\nPath               \r\n----               \r\nC:\\Windows\\system32\r\n\r\n\r\n"
                     ],
                     "column_name": "Command Output",
-                    "column_order": "4"
+                    "column_order": 4
                 },
                 {
                     "data_path": "action_result.data.*.File.vault_id",
@@ -812,7 +812,7 @@
                         "saver.py"
                     ],
                     "column_name": "Filename",
-                    "column_order": "0"
+                    "column_order": 0
                 },
                 {
                     "data_path": "action_result.data.*.File.s3_object_key",
@@ -821,7 +821,7 @@
                         "ca9bf311-0cc1-435c-ad87-cd55492f5bff/i-0ea1454477403286d/awsrunShellScript/0.awsrunShellScript/stdout"
                     ],
                     "column_name": "S3 Object Key",
-                    "column_order": "2"
+                    "column_order": 2
                 },
                 {
                     "data_path": "action_result.data.*.File.vault_id",
@@ -893,7 +893,7 @@
                         "sha1"
                     ],
                     "column_name": "Vault ID",
-                    "column_order": "1"
+                    "column_order": 1
                 },
                 {
                     "data_path": "action_result.summary.status",
@@ -1103,7 +1103,7 @@
                         "3bf78866-3492-4ffa-9fff-62215f8c7b13"
                     ],
                     "column_name": "Command ID",
-                    "column_order": "0",
+                    "column_order": 0,
                     "contains": [
                         "aws command id"
                     ]
@@ -1136,7 +1136,7 @@
                         "AWS-RunShellScript"
                     ],
                     "column_name": "Document Name",
-                    "column_order": "2",
+                    "column_order": 2,
                     "contains": [
                         "aws document name"
                     ]
@@ -1166,7 +1166,7 @@
                         "i-0ea1454477403286d"
                     ],
                     "column_name": "Instance ID",
-                    "column_order": "1",
+                    "column_order": 1,
                     "contains": [
                         "aws instance id"
                     ]
@@ -1441,7 +1441,7 @@
                         "8fbd52dd-ddc9-4206-a49f-810ec50e929e"
                     ],
                     "column_name": "Command ID",
-                    "column_order": "0",
+                    "column_order": 0,
                     "contains": [
                         "aws command id"
                     ]
@@ -1453,7 +1453,7 @@
                         "Checking contents of directory"
                     ],
                     "column_name": "Comment",
-                    "column_order": "5"
+                    "column_order": 5
                 },
                 {
                     "data_path": "action_result.data.*.Commands.*.CompletedCount",
@@ -1476,7 +1476,7 @@
                         "AWS-RunShellScript"
                     ],
                     "column_name": "Document Name",
-                    "column_order": "2",
+                    "column_order": 2,
                     "contains": [
                         "aws document name"
                     ]
@@ -1507,7 +1507,7 @@
                         "i-0ea1454477403286d"
                     ],
                     "column_name": "Instance ID",
-                    "column_order": "1",
+                    "column_order": 1,
                     "contains": [
                         "aws instance id"
                     ]
@@ -1583,7 +1583,7 @@
                         "2019-05-22 15:46:39"
                     ],
                     "column_name": "Requested Date",
-                    "column_order": "4"
+                    "column_order": 4
                 },
                 {
                     "data_path": "action_result.data.*.Commands.*.ServiceRole",
@@ -1596,7 +1596,7 @@
                         "Success"
                     ],
                     "column_name": "Status",
-                    "column_order": "3"
+                    "column_order": 3
                 },
                 {
                     "data_path": "action_result.data.*.Commands.*.StatusDetails",
@@ -1813,7 +1813,7 @@
                         "Command"
                     ],
                     "column_name": "Document Type",
-                    "column_order": "1"
+                    "column_order": 1
                 },
                 {
                     "data_path": "action_result.data.*.DocumentVersion",
@@ -1832,7 +1832,7 @@
                         "aws document name"
                     ],
                     "column_name": "Name",
-                    "column_order": "0"
+                    "column_order": 0
                 },
                 {
                     "data_path": "action_result.data.*.Owner",
@@ -1841,7 +1841,7 @@
                         "Amazon"
                     ],
                     "column_name": "Owner",
-                    "column_order": "2"
+                    "column_order": 2
                 },
                 {
                     "data_path": "action_result.data.*.PlatformTypes",
@@ -1850,7 +1850,7 @@
                         "Linux"
                     ],
                     "column_name": "Platform",
-                    "column_order": "3"
+                    "column_order": 3
                 },
                 {
                     "data_path": "action_result.data.*.SchemaVersion",
@@ -1978,7 +1978,7 @@
                         "2019-05-08 15:53:29"
                     ],
                     "column_name": "Last Modified Date",
-                    "column_order": "4"
+                    "column_order": 4
                 },
                 {
                     "data_path": "action_result.data.*.Parameter.Name",
@@ -1987,7 +1987,7 @@
                         "test-parameter"
                     ],
                     "column_name": "Name",
-                    "column_order": "0",
+                    "column_order": 0,
                     "contains": [
                         "aws parameter name"
                     ]
@@ -1999,7 +1999,7 @@
                         "String"
                     ],
                     "column_name": "Type",
-                    "column_order": "1"
+                    "column_order": 1
                 },
                 {
                     "data_path": "action_result.data.*.Parameter.Value",
@@ -2008,7 +2008,7 @@
                         "testing values"
                     ],
                     "column_name": "Value",
-                    "column_order": "2"
+                    "column_order": 2
                 },
                 {
                     "data_path": "action_result.data.*.Parameter.Version",
@@ -2017,7 +2017,7 @@
                         1
                     ],
                     "column_name": "Version",
-                    "column_order": "3"
+                    "column_order": 3
                 },
                 {
                     "data_path": "action_result.data.*.ResponseMetadata.HTTPHeaders.content-length",
@@ -2210,7 +2210,7 @@
                         "phantom"
                     ],
                     "column_name": "Name",
-                    "column_order": "0",
+                    "column_order": 0,
                     "contains": [
                         "aws parameter name"
                     ]
@@ -2230,7 +2230,7 @@
                         "SecureString"
                     ],
                     "column_name": "Type",
-                    "column_order": "1"
+                    "column_order": 1
                 },
                 {
                     "data_path": "action_result.parameter.value",
@@ -2295,7 +2295,7 @@
                         1
                     ],
                     "column_name": "Version",
-                    "column_order": "2"
+                    "column_order": 2
                 },
                 {
                     "data_path": "action_result.summary.status",
@@ -2438,7 +2438,7 @@
                         "172.31.84.173"
                     ],
                     "column_name": "IP",
-                    "column_order": "2",
+                    "column_order": 2,
                     "contains": [
                         "ip"
                     ]
@@ -2450,7 +2450,7 @@
                         "i-0274f8f32148f539f"
                     ],
                     "column_name": "Instance ID",
-                    "column_order": "0",
+                    "column_order": 0,
                     "contains": [
                         "aws instance id"
                     ]
@@ -2491,7 +2491,7 @@
                         "Windows"
                     ],
                     "column_name": "Platform",
-                    "column_order": "1"
+                    "column_order": 1
                 },
                 {
                     "data_path": "action_result.data.*.InstanceInformationList.*.PlatformVersion",
