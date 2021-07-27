@@ -9,6 +9,7 @@ SSM_JSON_ACCESS_KEY = "access_key"
 SSM_JSON_SECRET_KEY = "secret_key"
 SSM_JSON_REGION = "region"
 SSM_JSON_DEFAULT_S3_BUCKET = "default_s3_bucket"
+SSM_JSON_BAD_ASSET_CONFIG_MSG = "Please provide access keys or select assume role check box in asset configuration"
 
 SSM_REGION_DICT = {
         "US East (N. Virginia)": "us-east-1",
