@@ -103,7 +103,7 @@ class AwsSystemsManagerConnector(BaseConnector):
             self.debug_print("Error occurred while handling python 2to3 compatibility for the input string")
         return input_str
 
-    def _handle_get_ec2_role():
+    def _handle_get_ec2_role(self):
 
         session = Session(region_name=self._region)
         credentials = session.get_credentials()
