@@ -879,7 +879,7 @@ class AwsSystemsManagerConnector(BaseConnector):
             self._secret_key = credentials.secret_key
             self._session_token = credentials.token
 
-            return phantom.SPP_SUCCESS
+            return phantom.APP_SUCCESS
 
         self._access_key = config.get(SSM_JSON_ACCESS_KEY)
         self._secret_key = config.get(SSM_JSON_SECRET_KEY)
