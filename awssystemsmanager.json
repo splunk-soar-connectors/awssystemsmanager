@@ -10,8 +10,13 @@
     "product_version_regex": ".*",
     "publisher": "Splunk",
     "license": "Copyright (c) 2019-2021 Splunk Inc.",
+<<<<<<< HEAD
     "app_version": "2.2.2",
     "utctime_updated": "2021-09-10T18:22:00.000000Z",
+=======
+    "app_version": "2.1.1",
+    "utctime_updated": "2021-05-25T22:01:49.000000Z",
+>>>>>>> master
     "package_name": "phantom_awssystemsmanager",
     "main_module": "awssystemsmanager_connector.py",
     "python_version": "3",
