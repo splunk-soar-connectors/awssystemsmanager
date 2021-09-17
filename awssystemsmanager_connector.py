@@ -13,7 +13,7 @@ import phantom.rules as ph_rules
 
 # Usage of the consts file is recommended
 from awssystemsmanager_consts import *
-from boto3 import client
+from boto3 import client, Session
 from datetime import datetime
 from botocore.config import Config
 from bs4 import UnicodeDammit
@@ -26,6 +26,7 @@ import sys
 import tempfile
 import time
 import base64
+import ast
 
 
 class RetVal(tuple):
@@ -44,6 +45,7 @@ class AwsSystemsManagerConnector(BaseConnector):
         self._region = None
         self._access_key = None
         self._secret_key = None
+        self._session_token = None
         self._default_s3_bucket = None
         self._proxy = None
         self._python_version = None
@@ -100,6 +102,12 @@ class AwsSystemsManagerConnector(BaseConnector):
         except:
             self.debug_print("Error occurred while handling python 2to3 compatibility for the input string")
         return input_str
+
+    def _handle_get_ec2_role(self):
+
+        session = Session(region_name=self._region)
+        credentials = session.get_credentials()
+        return credentials
 
     def _make_boto_call(self, action_result, method, paginate=False, empty_payload=False, **kwargs):
 
@@ -165,11 +173,25 @@ class AwsSystemsManagerConnector(BaseConnector):
 
         return phantom.APP_SUCCESS, resp_json
 
-    def _create_client(self, action_result):
+    def _create_client(self, action_result, param=None):
 
         boto_config = None
         if self._proxy:
             boto_config = Config(proxies=self._proxy)
+
+        # Try getting and using temporary assume role credentials from parameters
+        temp_credentials = dict()
+        if param and 'credentials' in param:
+            try:
+                temp_credentials = ast.literal_eval(param['credentials'])
+                self._access_key = temp_credentials.get('AccessKeyId', '')
+                self._secret_key = temp_credentials.get('SecretAccessKey', '')
+                self._session_token = temp_credentials.get('SessionToken', '')
+
+                self.save_progress("Using temporary assume role credentials for action")
+            except Exception as e:
+                return action_result.set_status(phantom.APP_ERROR,
+                                                "Failed to get temporary credentials: {}".format(e))
 
         try:
             if self._access_key and self._secret_key:
@@ -179,6 +201,7 @@ class AwsSystemsManagerConnector(BaseConnector):
                     region_name=self._region,
                     aws_access_key_id=self._access_key,
                     aws_secret_access_key=self._secret_key,
+                    aws_session_token=self._session_token,
                     config=boto_config)
             else:
                 self.debug_print("Creating boto3 client without API keys")
@@ -191,11 +214,25 @@ class AwsSystemsManagerConnector(BaseConnector):
 
         return phantom.APP_SUCCESS
 
-    def _create_s3_client(self, action_result):
+    def _create_s3_client(self, action_result, param=None):
 
         boto_config = None
         if self._proxy:
             boto_config = Config(proxies=self._proxy)
+
+        # Try getting and using temporary assume role credentials from parameters
+        temp_credentials = dict()
+        if param and 'credentials' in param:
+            try:
+                temp_credentials = ast.literal_eval(param['credentials'])
+                self._access_key = temp_credentials.get('AccessKeyId', '')
+                self._secret_key = temp_credentials.get('SecretAccessKey', '')
+                self._session_token = temp_credentials.get('SessionToken', '')
+
+                self.save_progress("Using temporary assume role credentials for action")
+            except Exception as e:
+                return action_result.set_status(phantom.APP_ERROR,
+                                                "Failed to get temporary credentials: {0}".format(e))
 
         try:
 
@@ -208,6 +245,7 @@ class AwsSystemsManagerConnector(BaseConnector):
                         region_name=self._region,
                         aws_access_key_id=self._access_key,
                         aws_secret_access_key=self._secret_key,
+                        aws_session_token=self._session_token,
                         config=boto_config)
 
             else:
@@ -224,17 +262,17 @@ class AwsSystemsManagerConnector(BaseConnector):
 
         return phantom.APP_SUCCESS
 
-    def _get_s3_bucket(self, action_result, output_s3_bucket_name):
+    def _get_s3_bucket(self, action_result, output_s3_bucket_name, param):
 
-        self._create_s3_client(action_result)
+        self._create_s3_client(action_result, param)
 
         ret_val, resp_json = self._make_boto_call(action_result, 'get_bucket_accelerate_configuration', Bucket=output_s3_bucket_name)
 
         return ret_val
 
-    def _create_s3_bucket(self, action_result, output_s3_bucket_name):
+    def _create_s3_bucket(self, action_result, output_s3_bucket_name, param):
 
-        self._create_s3_client(action_result)
+        self._create_s3_client(action_result, param)
 
         location = {'LocationConstraint': SSM_REGION_DICT[self.get_config()['region']]}
 
@@ -249,13 +287,13 @@ class AwsSystemsManagerConnector(BaseConnector):
 
         return ret_val, output_s3_bucket_name
 
-    def _get_s3_object(self, action_result, output_s3_bucket_name, output_s3_object_key, save_output_to_vault, file_name):
+    def _get_s3_object(self, action_result, output_s3_bucket_name, output_s3_object_key, save_output_to_vault, file_name, param):
 
-        self._create_s3_client(action_result)
+        self._create_s3_client(action_result, param)
 
         ret_val, resp_json = self._make_s3_boto_call(action_result, 'get_object', Bucket=output_s3_bucket_name, Key=output_s3_object_key)
 
-        if (phantom.is_fail(ret_val)):
+        if phantom.is_fail(ret_val):
             return ret_val
 
         try:
@@ -313,13 +351,13 @@ class AwsSystemsManagerConnector(BaseConnector):
 
         self.save_progress("Querying AWS to check credentials")
 
-        if not self._create_client(action_result):
+        if not self._create_client(action_result, param):
             return action_result.get_status()
 
         # make rest call
         ret_val, resp_json = self._make_boto_call(action_result, 'list_commands', MaxResults=1)
 
-        if (phantom.is_fail(ret_val)):
+        if phantom.is_fail(ret_val):
             self.save_progress("Test Connectivity Failed.")
             return action_result.get_status()
 
@@ -366,8 +404,8 @@ class AwsSystemsManagerConnector(BaseConnector):
             output_s3_bucket_name = self._default_s3_bucket
 
         # Create S3 bucket to store command output if it does not already exist
-        if self._get_s3_bucket(action_result, output_s3_bucket_name) is False:
-            ret_val, output_s3_bucket_name = self._create_s3_bucket(action_result, output_s3_bucket_name)
+        if self._get_s3_bucket(action_result, output_s3_bucket_name, param) is False:
+            ret_val, output_s3_bucket_name = self._create_s3_bucket(action_result, output_s3_bucket_name, param)
             if ret_val is False:
                 return action_result.set_status(phantom.APP_ERROR, "Failed to create S3 bucket")
 
@@ -388,13 +426,13 @@ class AwsSystemsManagerConnector(BaseConnector):
         if comment:
             args['Comment'] = comment
 
-        if not self._create_client(action_result):
+        if not self._create_client(action_result, param):
             return action_result.get_status()
 
         # Executes the shell program via SSM boto call
         ret_val, response = self._make_boto_call(action_result, 'send_command', **args)
 
-        if (phantom.is_fail(ret_val)):
+        if phantom.is_fail(ret_val):
             return action_result.get_status()
 
         result_json = {"Command": response['Command']}
@@ -406,14 +444,14 @@ class AwsSystemsManagerConnector(BaseConnector):
         time.sleep(10)
 
         try:
-            ret_val, resp_json = self._get_s3_object(action_result, output_s3_bucket_name, output_s3_object_key, save_output_to_vault, file_name)
+            ret_val, resp_json = self._get_s3_object(action_result, output_s3_bucket_name, output_s3_object_key, save_output_to_vault, file_name, param)
         except Exception:
             # Look for stderr file if stdout file was not found. If this is get_file action, then action fails with a no file found message.
             try:
                 if self.get_action_identifier() == 'get_file':
                     return action_result.set_status(phantom.APP_ERROR, "{}: No such file found. Please check full file path (include filename)".format(file_path))
                 output_s3_object_key = output_s3_object_key.replace('stdout', 'stderr')
-                ret_val, resp_json = self._get_s3_object(action_result, output_s3_bucket_name, output_s3_object_key, save_output_to_vault, file_name)
+                ret_val, resp_json = self._get_s3_object(action_result, output_s3_bucket_name, output_s3_object_key, save_output_to_vault, file_name, param)
             except Exception:
                 return action_result.set_status(phantom.APP_ERROR, "Failed to get S3 object")
 
@@ -443,12 +481,12 @@ class AwsSystemsManagerConnector(BaseConnector):
 
         if output_s3_bucket_name:
             # Create S3 bucket to store command output if it does not already exist
-            if self._get_s3_bucket(action_result, output_s3_bucket_name) is False:
-                ret_val, output_s3_bucket_name = self._create_s3_bucket(action_result, output_s3_bucket_name)
+            if self._get_s3_bucket(action_result, output_s3_bucket_name, param) is False:
+                ret_val, output_s3_bucket_name = self._create_s3_bucket(action_result, output_s3_bucket_name, param)
                 if ret_val is False:
                     return action_result.get_status()
 
-        if not self._create_client(action_result):
+        if not self._create_client(action_result, param):
             return action_result.get_status()
 
         instance_id = param['instance_id']
@@ -487,7 +525,7 @@ class AwsSystemsManagerConnector(BaseConnector):
         # make rest call
         ret_val, response = self._make_boto_call(action_result, 'send_command', **args)
 
-        if (phantom.is_fail(ret_val)):
+        if phantom.is_fail(ret_val):
             return action_result.get_status()
 
         # Add the response into the data section
@@ -506,16 +544,16 @@ class AwsSystemsManagerConnector(BaseConnector):
         # Add an action result object to self (BaseConnector) to represent the action for this param
         action_result = self.add_action_result(ActionResult(dict(param)))
 
-        if not self._create_client(action_result):
+        if not self._create_client(action_result, param):
             return action_result.get_status()
 
         num_commands = 0
+        max_results = param.get('max_results')
+        command_id = param.get('command_id')
+        instance_id = param.get('instance_id')
 
         while True:
 
-            command_id = param.get('command_id')
-            instance_id = param.get('instance_id')
-            max_results = param.get('max_results')
             limit = None
             if max_results == 0:
                 return action_result.set_status(phantom.APP_ERROR, "MaxResults parameter must be greater than 0")
@@ -537,7 +575,7 @@ class AwsSystemsManagerConnector(BaseConnector):
             # make rest call
             ret_val, response = self._make_boto_call(action_result, 'list_commands', **args)
 
-            if (phantom.is_fail(ret_val)):
+            if phantom.is_fail(ret_val):
                 return action_result.get_status()
 
             num_commands = num_commands + len(response['Commands'])
@@ -546,7 +584,7 @@ class AwsSystemsManagerConnector(BaseConnector):
             if limit is not None:
                 action_result.add_data(response)
                 limit = limit - 50
-                param['max_results'] = limit
+                max_results = limit
                 if response.get('NextToken'):
                     param['next_token'] = response.get('NextToken')
                     continue
@@ -575,7 +613,7 @@ class AwsSystemsManagerConnector(BaseConnector):
         # Add an action result object to self (BaseConnector) to represent the action for this param
         action_result = self.add_action_result(ActionResult(dict(param)))
 
-        if not self._create_client(action_result):
+        if not self._create_client(action_result, param):
             return action_result.get_status()
 
         num_documents = 0
@@ -621,7 +659,7 @@ class AwsSystemsManagerConnector(BaseConnector):
             # make rest call
             ret_val, response = self._make_boto_call(action_result, 'list_documents', **args)
 
-            if (phantom.is_fail(ret_val)):
+            if phantom.is_fail(ret_val):
                 return action_result.get_status()
 
             next_token = response.get('NextToken')
@@ -662,7 +700,7 @@ class AwsSystemsManagerConnector(BaseConnector):
         # Add an action result object to self (BaseConnector) to represent the action for this param
         action_result = self.add_action_result(ActionResult(dict(param)))
 
-        if not self._create_client(action_result):
+        if not self._create_client(action_result, param):
             return action_result.get_status()
 
         name = param['name']
@@ -676,7 +714,7 @@ class AwsSystemsManagerConnector(BaseConnector):
         # make rest call
         ret_val, response = self._make_boto_call(action_result, 'get_parameter', **args)
 
-        if (phantom.is_fail(ret_val)):
+        if phantom.is_fail(ret_val):
             return action_result.get_status()
 
         # Add the response into the data section
@@ -695,7 +733,7 @@ class AwsSystemsManagerConnector(BaseConnector):
         # Add an action result object to self (BaseConnector) to represent the action for this param
         action_result = self.add_action_result(ActionResult(dict(param)))
 
-        if not self._create_client(action_result):
+        if not self._create_client(action_result, param):
             return action_result.get_status()
 
         name = param['name']
@@ -703,7 +741,7 @@ class AwsSystemsManagerConnector(BaseConnector):
         value = param['value']
         type = param['type']
         key_id = param.get('key_id')
-        overwrite = param['overwrite']
+        overwrite = param.get('overwrite')
         allowed_pattern = param.get('allowed_pattern')
 
         args = {
@@ -723,7 +761,7 @@ class AwsSystemsManagerConnector(BaseConnector):
         # make rest call
         ret_val, response = self._make_boto_call(action_result, 'put_parameter', **args)
 
-        if (phantom.is_fail(ret_val)):
+        if phantom.is_fail(ret_val):
             return action_result.get_status()
 
         # Add the response into the data section
@@ -742,7 +780,7 @@ class AwsSystemsManagerConnector(BaseConnector):
         # Add an action result object to self (BaseConnector) to represent the action for this param
         action_result = self.add_action_result(ActionResult(dict(param)))
 
-        if not self._create_client(action_result):
+        if not self._create_client(action_result, param):
             return action_result.get_status()
 
         instance_id = param['instance_id']
@@ -755,7 +793,7 @@ class AwsSystemsManagerConnector(BaseConnector):
         # make rest call
         ret_val, response = self._make_boto_call(action_result, 'describe_instance_information', **args)
 
-        if (phantom.is_fail(ret_val)):
+        if phantom.is_fail(ret_val):
             return action_result.get_status()
 
         if len(response['InstanceInformationList']) == 0:
@@ -823,13 +861,7 @@ class AwsSystemsManagerConnector(BaseConnector):
         # get the asset config
         config = self.get_config()
 
-        if SSM_JSON_ACCESS_KEY in config:
-            self._access_key = config.get(SSM_JSON_ACCESS_KEY)
-        if SSM_JSON_SECRET_KEY in config:
-            self._secret_key = config.get(SSM_JSON_SECRET_KEY)
-        if SSM_JSON_DEFAULT_S3_BUCKET in config:
-            self._default_s3_bucket = config.get(SSM_JSON_DEFAULT_S3_BUCKET)
-
+        self._default_s3_bucket = config.get(SSM_JSON_DEFAULT_S3_BUCKET)
         self._region = SSM_REGION_DICT.get(config[SSM_JSON_REGION])
 
         self._proxy = {}
@@ -838,6 +870,22 @@ class AwsSystemsManagerConnector(BaseConnector):
             self._proxy['http'] = env_vars['HTTP_PROXY']['value']
         if 'HTTPS_PROXY' in env_vars:
             self._proxy['https'] = env_vars['HTTPS_PROXY']['value']
+
+        if config.get('use_role'):
+            credentials = self._handle_get_ec2_role()
+            if not credentials:
+                return self.set_status(phantom.APP_ERROR, "Failed to get EC2 role credentials")
+            self._access_key = credentials.access_key
+            self._secret_key = credentials.secret_key
+            self._session_token = credentials.token
+
+            return phantom.APP_SUCCESS
+
+        self._access_key = config.get(SSM_JSON_ACCESS_KEY)
+        self._secret_key = config.get(SSM_JSON_SECRET_KEY)
+
+        if not (self._access_key and self._secret_key):
+            return self.set_status(phantom.APP_ERROR, SSM_JSON_BAD_ASSET_CONFIG_MSG)
 
         return phantom.APP_SUCCESS
 
@@ -867,13 +915,13 @@ if __name__ == '__main__':
     username = args.username
     password = args.password
 
-    if (username is not None and password is None):
+    if username is not None and password is None:
 
         # User specified a username but not a password, so ask
         import getpass
         password = getpass.getpass("Password: ")
 
-    if (username and password):
+    if username and password:
         login_url = BaseConnector._get_phantom_base_url() + "login"
         try:
             print("Accessing the Login page")
@@ -904,7 +952,7 @@ if __name__ == '__main__':
         connector = AwsSystemsManagerConnector()
         connector.print_progress_message = True
 
-        if (session_id is not None):
+        if session_id is not None:
             in_json['user_session_token'] = session_id
             connector._set_csrf_info(csrftoken, headers['Referer'])
 
