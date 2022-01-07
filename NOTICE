@@ -1,31 +1,26 @@
 Splunk SOAR AWS Systems Manager
-Copyright 2021 Splunk Inc.
+Copyright (c) 2019-2021 Splunk Inc.
 
 Third-party Software Attributions:
+
+Library: beautifulsoup4
+Version: 4.9.1
+License: MIT
+Copyright 2004-2017 Leonard Richardson
+Copyright 2004-2019 Leonard Richardson
+Copyright 2018 Isaac Muse
+
+Library: boto3
+Version: 1.17.23
+License: Apache 2.0
+Unknown copyright
 
 Library: docutils
 Version: 0.16
 License: Public Domain
 Copyright 2011 Günter Milde,
 
-Library: beautifulsoup4
-Version: 4.9.1
-License: MIT
-Copyright 2004-2019 Leonard Richardson
-Copyright 2018 Isaac Muse
-Copyright 2004-2017 Leonard Richardson
-
-Library: pudb
-Version: 2019.2
-License: MIT
-Copyright 2009 Andreas Kloeckner and contributors
-
 Library: requests
 Version: 2.25.0
 License: Apache 2.0
 Kenneth Reitz
-
-Library: boto3
-Version: 1.17.23
-License: Apache 2.0
-Unknown copyright
