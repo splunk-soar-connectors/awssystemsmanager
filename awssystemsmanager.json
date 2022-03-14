@@ -9,7 +9,7 @@
     "product_name": "Systems Manager",
     "product_version_regex": ".*",
     "publisher": "Splunk",
-    "license": "Copyright (c) 2019-2021 Splunk Inc.",
+    "license": "Copyright (c) 2019-2022 Splunk Inc.",
     "app_version": "2.2.7",
     "utctime_updated": "2022-01-07T22:40:06.000000Z",
     "package_name": "phantom_awssystemsmanager",
@@ -19,6 +19,7 @@
         "Cloud tested on July 22nd, 2021"
     ],
     "min_phantom_version": "4.9.39220",
+    "fips_compliant": true,
     "app_wizard_version": "1.0.0",
     "pip_dependencies": {
         "wheel": [
