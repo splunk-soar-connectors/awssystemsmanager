@@ -565,7 +565,7 @@ class AwsSystemsManagerConnector(BaseConnector):
         if not self._create_client(action_result, param):
             return action_result.get_status()
 
-        num_commands = 0
+        total_commands = 0
         max_results = param.get('max_results')
         command_id = param.get('command_id')
         instance_id = param.get('instance_id')
@@ -596,12 +596,13 @@ class AwsSystemsManagerConnector(BaseConnector):
             if phantom.is_fail(ret_val):
                 return action_result.get_status()
 
-            num_commands = num_commands + len(response['Commands'])
+            num_commands = len(response['Commands'])
+            total_commands += num_commands
 
             # handles limitation of boto3 pagination results greater than 50
             if limit is not None:
                 action_result.add_data(response)
-                limit = limit - 50
+                limit = limit - num_commands
                 max_results = limit
                 if response.get('NextToken'):
                     param['next_token'] = response.get('NextToken')
@@ -609,19 +610,19 @@ class AwsSystemsManagerConnector(BaseConnector):
                 else:
                     # Add a dictionary that is made up of the most important values from data into the summary
                     summary = action_result.update_summary({})
-                    summary['num_commands'] = num_commands
+                    summary['num_commands'] = total_commands
                     return action_result.set_status(phantom.APP_SUCCESS)
 
             # Add the response into the data section
             action_result.add_data(response)
             next_token = response.get('NextToken')
 
-            if next_token and max_results is None:
+            if next_token and (max_results is None or num_commands == 0):
                 param['next_token'] = response['NextToken']
             else:
                 # Add a dictionary that is made up of the most important values from data into the summary
                 summary = action_result.update_summary({})
-                summary['num_commands'] = num_commands
+                summary['num_commands'] = total_commands
                 return action_result.set_status(phantom.APP_SUCCESS)
 
     def _handle_list_documents(self, param):
