@@ -18,7 +18,7 @@
     "latest_tested_versions": [
         "Cloud tested on July 22nd, 2021"
     ],
-    "min_phantom_version": "4.9.39220",
+    "min_phantom_version": "5.1.0",
     "fips_compliant": true,
     "app_wizard_version": "1.0.0",
     "pip_dependencies": {
