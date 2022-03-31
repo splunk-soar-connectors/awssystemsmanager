@@ -487,6 +487,14 @@ class AwsSystemsManagerConnector(BaseConnector):
 
         return action_result.set_status(phantom.APP_SUCCESS)
 
+    def _handle_execute_program(self, param):
+
+        return self._handle_send_command(param)
+
+    def _handle_get_file(self, param):
+
+        return self._handle_send_command(param)
+
     def _handle_run_document(self, param):
 
         self.save_progress("In action handler for: {0}".format(self.get_action_identifier()))
@@ -565,7 +573,7 @@ class AwsSystemsManagerConnector(BaseConnector):
         if not self._create_client(action_result, param):
             return action_result.get_status()
 
-        num_commands = 0
+        total_commands = 0
         max_results = param.get('max_results')
         command_id = param.get('command_id')
         instance_id = param.get('instance_id')
@@ -596,12 +604,15 @@ class AwsSystemsManagerConnector(BaseConnector):
             if phantom.is_fail(ret_val):
                 return action_result.get_status()
 
-            num_commands = num_commands + len(response['Commands'])
+            num_commands = len(response['Commands'])
+            total_commands += num_commands
+
+            self.debug_print("Found {0} commands in last list_commands response".format(num_commands))
 
             # handles limitation of boto3 pagination results greater than 50
             if limit is not None:
                 action_result.add_data(response)
-                limit = limit - 50
+                limit = limit - num_commands
                 max_results = limit
                 if response.get('NextToken'):
                     param['next_token'] = response.get('NextToken')
@@ -609,19 +620,19 @@ class AwsSystemsManagerConnector(BaseConnector):
                 else:
                     # Add a dictionary that is made up of the most important values from data into the summary
                     summary = action_result.update_summary({})
-                    summary['num_commands'] = num_commands
+                    summary['num_commands'] = total_commands
                     return action_result.set_status(phantom.APP_SUCCESS)
 
             # Add the response into the data section
             action_result.add_data(response)
             next_token = response.get('NextToken')
 
-            if next_token and max_results is None:
+            if next_token and (max_results is None or num_commands == 0):
                 param['next_token'] = response['NextToken']
             else:
                 # Add a dictionary that is made up of the most important values from data into the summary
                 summary = action_result.update_summary({})
-                summary['num_commands'] = num_commands
+                summary['num_commands'] = total_commands
                 return action_result.set_status(phantom.APP_SUCCESS)
 
     def _handle_list_documents(self, param):
@@ -674,6 +685,8 @@ class AwsSystemsManagerConnector(BaseConnector):
             if next_token:
                 args['NextToken'] = next_token
 
+            self.debug_print("Making list_documents call to get next set of documents.")
+
             # make rest call
             ret_val, response = self._make_boto_call(action_result, 'list_documents', **args)
 
@@ -723,6 +736,8 @@ class AwsSystemsManagerConnector(BaseConnector):
 
         name = param['name']
         with_decryption = param.get('with_decryption', False)
+
+        self.debug_print("Making get_parameter call {0} decryption".format('with' if with_decryption else 'without'))
 
         args = {
             'Name': name,
@@ -776,6 +791,8 @@ class AwsSystemsManagerConnector(BaseConnector):
         if allowed_pattern:
             args['AllowedPattern'] = allowed_pattern
 
+        self.debug_print("Making put_parameter call with body: ", args)
+
         # make rest call
         ret_val, response = self._make_boto_call(action_result, 'put_parameter', **args)
 
@@ -813,6 +830,8 @@ class AwsSystemsManagerConnector(BaseConnector):
 
         if phantom.is_fail(ret_val):
             return action_result.get_status()
+
+        self.debug_print("Found {0} instances in describe_instance response".format(len(response['InstanceInformationList'])))
 
         if len(response['InstanceInformationList']) == 0:
             return action_result.set_status(phantom.APP_ERROR,
