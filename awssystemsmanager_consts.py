@@ -1,10 +1,20 @@
 # File: awssystemsmanager_consts.py
-# Copyright (c) 2019-2021 Splunk Inc.
 #
-# SPLUNK CONFIDENTIAL - Use or disclosure of this material in whole or in part
-# without a valid written license from Splunk Inc. is PROHIBITED.
+# Copyright (c) 2019-2022 Splunk Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software distributed under
+# the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+# either express or implied. See the License for the specific language governing permissions
+# and limitations under the License.
+#
+#
 # Define your constants here
-
 SSM_JSON_ACCESS_KEY = "access_key"
 SSM_JSON_SECRET_KEY = "secret_key"
 SSM_JSON_REGION = "region"
@@ -39,3 +49,4 @@ POWERSHELL_DOCUMENT = 'AWS-RunPowerShellScript'
 POWERSHELL_DOC_HASH = '2142e42a19e0955cc09e43600bf2e633df1917b69d2be9693737dfd62e0fdf61'
 LINUX_DOCUMENT = 'AWS-RunShellScript'
 LINUX_DOC_HASH = '99749de5e62f71e5ebe9a55c2321e2c394796afe7208cff048696541e6f6771e'
+DEFAULT_REQUEST_TIMEOUT = 30  # in seconds

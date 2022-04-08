@@ -1,32 +1,43 @@
 # File: awssystemsmanager_connector.py
-# Copyright (c) 2019-2021 Splunk Inc.
 #
-# SPLUNK CONFIDENTIAL - Use or disclosure of this material in whole or in part
-# without a valid written license from Splunk Inc. is PROHIBITED.
-
+# Copyright (c) 2019-2022 Splunk Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software distributed under
+# the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+# either express or implied. See the License for the specific language governing permissions
+# and limitations under the License.
+#
+#
 # Phantom App imports
-import phantom.app as phantom
-from phantom.base_connector import BaseConnector
-from phantom.action_result import ActionResult
-from phantom.vault import Vault
-import phantom.rules as ph_rules
-
-# Usage of the consts file is recommended
-from awssystemsmanager_consts import *
-from boto3 import client, Session
-from datetime import datetime
-from botocore.config import Config
-from bs4 import UnicodeDammit
-import botocore.response as br
-import botocore.paginate as bp
-import requests
+import ast
+import base64
 import json
 import os
 import sys
 import tempfile
 import time
-import base64
-import ast
+from datetime import datetime
+
+import botocore.paginate as bp
+import botocore.response as br
+import phantom.app as phantom
+import phantom.rules as ph_rules
+import requests
+from boto3 import Session, client
+from botocore.config import Config
+from bs4 import UnicodeDammit
+from phantom.action_result import ActionResult
+from phantom.base_connector import BaseConnector
+from phantom.vault import Vault
+
+# Usage of the consts file is recommended
+from awssystemsmanager_consts import *
 
 
 class RetVal(tuple):
@@ -283,7 +294,8 @@ class AwsSystemsManagerConnector(BaseConnector):
         if location['LocationConstraint'] == 'us-east-1':
             ret_val, resp_json = self._make_boto_call(action_result, 'create_bucket', Bucket=output_s3_bucket_name)
         else:
-            ret_val, resp_json = self._make_boto_call(action_result, 'create_bucket', Bucket=output_s3_bucket_name, CreateBucketConfiguration=location)
+            ret_val, resp_json = self._make_boto_call(action_result,
+                'create_bucket', Bucket=output_s3_bucket_name, CreateBucketConfiguration=location)
 
         return ret_val, output_s3_bucket_name
 
@@ -325,13 +337,16 @@ class AwsSystemsManagerConnector(BaseConnector):
             try:
                 # This conditional means 'get file' action has been called. This updates the correct filename that is written into the vault
                 if file_name:
-                    success, message, vault_id = ph_rules.vault_add(file_location=file_path, container=self.get_container_id(), file_name=file_name)
+                    success, message, vault_id = ph_rules.vault_add(file_location=file_path,
+                        container=self.get_container_id(), file_name=file_name)
                     result_json['filename'] = file_name
                     # We do not need to return output for 'get file' action
                     result_json.pop('output', None)
-                # This conditional means 'execute program' action has been called. This will name the file as either 'stdout' or 'stderr' into the vault
+                # This conditional means 'execute program' action has been called. This will name the file
+                # as either 'stdout' or 'stderr' into the vault
                 else:
-                    success, message, vault_id = ph_rules.vault_add(file_location=file_path, container=self.get_container_id(), file_name=os.path.basename(output_s3_object_key))
+                    success, message, vault_id = ph_rules.vault_add(file_location=file_path,
+                        container=self.get_container_id(), file_name=os.path.basename(output_s3_object_key))
                     result_json['filename'] = os.path.basename(output_s3_object_key)
             except Exception as e:
                 return action_result.set_status(phantom.APP_ERROR, "Could not file to vault: {0}".format(e))
@@ -444,14 +459,17 @@ class AwsSystemsManagerConnector(BaseConnector):
         time.sleep(10)
 
         try:
-            ret_val, resp_json = self._get_s3_object(action_result, output_s3_bucket_name, output_s3_object_key, save_output_to_vault, file_name, param)
+            ret_val, resp_json = self._get_s3_object(action_result, output_s3_bucket_name,
+                output_s3_object_key, save_output_to_vault, file_name, param)
         except Exception:
             # Look for stderr file if stdout file was not found. If this is get_file action, then action fails with a no file found message.
             try:
                 if self.get_action_identifier() == 'get_file':
-                    return action_result.set_status(phantom.APP_ERROR, "{}: No such file found. Please check full file path (include filename)".format(file_path))
+                    return action_result.set_status(phantom.APP_ERROR,
+                        "{}: No such file found. Please check full file path (include filename)".format(file_path))
                 output_s3_object_key = output_s3_object_key.replace('stdout', 'stderr')
-                ret_val, resp_json = self._get_s3_object(action_result, output_s3_bucket_name, output_s3_object_key, save_output_to_vault, file_name, param)
+                ret_val, resp_json = self._get_s3_object(action_result, output_s3_bucket_name,
+                    output_s3_object_key, save_output_to_vault, file_name, param)
             except Exception:
                 return action_result.set_status(phantom.APP_ERROR, "Failed to get S3 object")
 
@@ -468,6 +486,14 @@ class AwsSystemsManagerConnector(BaseConnector):
             summary['status'] = "Successfully executed program"
 
         return action_result.set_status(phantom.APP_SUCCESS)
+
+    def _handle_execute_program(self, param):
+
+        return self._handle_send_command(param)
+
+    def _handle_get_file(self, param):
+
+        return self._handle_send_command(param)
 
     def _handle_run_document(self, param):
 
@@ -547,7 +573,7 @@ class AwsSystemsManagerConnector(BaseConnector):
         if not self._create_client(action_result, param):
             return action_result.get_status()
 
-        num_commands = 0
+        total_commands = 0
         max_results = param.get('max_results')
         command_id = param.get('command_id')
         instance_id = param.get('instance_id')
@@ -578,12 +604,15 @@ class AwsSystemsManagerConnector(BaseConnector):
             if phantom.is_fail(ret_val):
                 return action_result.get_status()
 
-            num_commands = num_commands + len(response['Commands'])
+            num_commands = len(response['Commands'])
+            total_commands += num_commands
+
+            self.debug_print("Found {0} commands in last list_commands response".format(num_commands))
 
             # handles limitation of boto3 pagination results greater than 50
             if limit is not None:
                 action_result.add_data(response)
-                limit = limit - 50
+                limit = limit - num_commands
                 max_results = limit
                 if response.get('NextToken'):
                     param['next_token'] = response.get('NextToken')
@@ -591,19 +620,19 @@ class AwsSystemsManagerConnector(BaseConnector):
                 else:
                     # Add a dictionary that is made up of the most important values from data into the summary
                     summary = action_result.update_summary({})
-                    summary['num_commands'] = num_commands
+                    summary['num_commands'] = total_commands
                     return action_result.set_status(phantom.APP_SUCCESS)
 
             # Add the response into the data section
             action_result.add_data(response)
             next_token = response.get('NextToken')
 
-            if next_token and max_results is None:
+            if next_token and (max_results is None or num_commands == 0):
                 param['next_token'] = response['NextToken']
             else:
                 # Add a dictionary that is made up of the most important values from data into the summary
                 summary = action_result.update_summary({})
-                summary['num_commands'] = num_commands
+                summary['num_commands'] = total_commands
                 return action_result.set_status(phantom.APP_SUCCESS)
 
     def _handle_list_documents(self, param):
@@ -656,6 +685,8 @@ class AwsSystemsManagerConnector(BaseConnector):
             if next_token:
                 args['NextToken'] = next_token
 
+            self.debug_print("Making list_documents call to get next set of documents.")
+
             # make rest call
             ret_val, response = self._make_boto_call(action_result, 'list_documents', **args)
 
@@ -705,6 +736,8 @@ class AwsSystemsManagerConnector(BaseConnector):
 
         name = param['name']
         with_decryption = param.get('with_decryption', False)
+
+        self.debug_print("Making get_parameter call {0} decryption".format('with' if with_decryption else 'without'))
 
         args = {
             'Name': name,
@@ -758,6 +791,8 @@ class AwsSystemsManagerConnector(BaseConnector):
         if allowed_pattern:
             args['AllowedPattern'] = allowed_pattern
 
+        self.debug_print("Making put_parameter call with body: ", args)
+
         # make rest call
         ret_val, response = self._make_boto_call(action_result, 'put_parameter', **args)
 
@@ -796,8 +831,11 @@ class AwsSystemsManagerConnector(BaseConnector):
         if phantom.is_fail(ret_val):
             return action_result.get_status()
 
+        self.debug_print("Found {0} instances in describe_instance response".format(len(response['InstanceInformationList'])))
+
         if len(response['InstanceInformationList']) == 0:
-            return action_result.set_status(phantom.APP_ERROR, "No SSM instance found. Please check if instance is assigned to a System Manager IAM role.")
+            return action_result.set_status(phantom.APP_ERROR,
+                "No SSM instance found. Please check if instance is assigned to a System Manager IAM role.")
 
         # Add the response into the data section
         action_result.add_data(response)
@@ -898,8 +936,9 @@ class AwsSystemsManagerConnector(BaseConnector):
 
 if __name__ == '__main__':
 
-    import pudb
     import argparse
+
+    import pudb
 
     pudb.set_trace()
 
@@ -908,12 +947,14 @@ if __name__ == '__main__':
     argparser.add_argument('input_test_json', help='Input Test JSON file')
     argparser.add_argument('-u', '--username', help='username', required=False)
     argparser.add_argument('-p', '--password', help='password', required=False)
+    argparser.add_argument('-v', '--verify', action='store_true', help='verify', required=False, default=False)
 
     args = argparser.parse_args()
     session_id = None
 
     username = args.username
     password = args.password
+    verify = args.verify
 
     if username is not None and password is None:
 
@@ -925,7 +966,7 @@ if __name__ == '__main__':
         login_url = BaseConnector._get_phantom_base_url() + "login"
         try:
             print("Accessing the Login page")
-            r = requests.get(login_url, verify=False)
+            r = requests.get(login_url, verify=verify, timeout=DEFAULT_REQUEST_TIMEOUT)
             csrftoken = r.cookies['csrftoken']
 
             data = dict()
@@ -938,11 +979,11 @@ if __name__ == '__main__':
             headers['Referer'] = login_url
 
             print("Logging into Platform to get the session id")
-            r2 = requests.post(login_url, verify=False, data=data, headers=headers)
+            r2 = requests.post(login_url, verify=verify, data=data, headers=headers, timeout=DEFAULT_REQUEST_TIMEOUT)
             session_id = r2.cookies['sessionid']
         except Exception as e:
             print("Unable to get session id from the platform. Error: {}".format(str(e)))
-            exit(1)
+            sys.exit(1)
 
     with open(args.input_test_json) as f:
         in_json = f.read()
@@ -959,4 +1000,4 @@ if __name__ == '__main__':
         ret_val = connector._handle_action(json.dumps(in_json), None)
         print(json.dumps(json.loads(ret_val), indent=4))
 
-    exit(0)
+    sys.exit(0)
