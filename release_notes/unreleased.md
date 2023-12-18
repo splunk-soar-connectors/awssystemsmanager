@@ -1,2 +1,2 @@
 **Unreleased**
-* Updated requests dependencies in order to use platform packages [PAPP-30822]
+* Updated requests dependency in order to use platform packages [PAPP-30822]
