@@ -2,7 +2,7 @@
 # AWS Systems Manager
 
 Publisher: Splunk  
-Connector Version: 2.3.1  
+Connector Version: 2.3.2  
 Product Vendor: AWS  
 Product Name: Systems Manager  
 Product Version Supported (regex): ".\*"  
