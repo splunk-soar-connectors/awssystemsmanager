@@ -9,8 +9,8 @@
     "product_name": "Systems Manager",
     "product_version_regex": ".*",
     "publisher": "Splunk",
-    "license": "Copyright (c) 2019-2023 Splunk Inc.",
-    "app_version": "2.3.1",
+    "license": "Copyright (c) 2019-2024 Splunk Inc.",
+    "app_version": "2.3.2",
     "utctime_updated": "2022-01-07T22:40:06.000000Z",
     "package_name": "phantom_awssystemsmanager",
     "main_module": "awssystemsmanager_connector.py",
@@ -82,10 +82,6 @@
             {
                 "module": "soupsieve",
                 "input_file": "wheels/shared/soupsieve-1.9.6-py2.py3-none-any.whl"
-            },
-            {
-                "module": "urllib3",
-                "input_file": "wheels/shared/urllib3-1.26.7-py2.py3-none-any.whl"
             }
         ]
     },
