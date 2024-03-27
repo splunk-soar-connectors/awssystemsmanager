@@ -6,7 +6,7 @@ Connector Version: 2.3.2
 Product Vendor: AWS  
 Product Name: Systems Manager  
 Product Version Supported (regex): ".\*"  
-Minimum Product Version: 5.2.0  
+Minimum Product Version: 6.1.1  
 
 This app integrates with AWS Simple Systems Manager (SSM) to remotely and securely manage the configuration of any EC2 instance or on-premise machine configured for SSM
 
