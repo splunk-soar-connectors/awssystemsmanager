@@ -40,10 +40,6 @@
                 "input_file": "wheels/shared/botocore-1.20.23-py2.py3-none-any.whl"
             },
             {
-                "module": "certifi",
-                "input_file": "wheels/shared/certifi-2021.10.8-py2.py3-none-any.whl"
-            },
-            {
                 "module": "chardet",
                 "input_file": "wheels/shared/chardet-3.0.4-py2.py3-none-any.whl"
             },
@@ -56,20 +52,12 @@
                 "input_file": "wheels/py2/futures-3.2.0-py2-none-any.whl"
             },
             {
-                "module": "idna",
-                "input_file": "wheels/shared/idna-2.10-py2.py3-none-any.whl"
-            },
-            {
                 "module": "jmespath",
                 "input_file": "wheels/shared/jmespath-0.9.3-py2.py3-none-any.whl"
             },
             {
                 "module": "python_dateutil",
                 "input_file": "wheels/shared/python_dateutil-2.8.2-py2.py3-none-any.whl"
-            },
-            {
-                "module": "requests",
-                "input_file": "wheels/shared/requests-2.25.0-py2.py3-none-any.whl"
             },
             {
                 "module": "s3transfer",
