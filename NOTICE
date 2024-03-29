@@ -14,8 +14,3 @@ Library: boto3
 Version: 1.17.23
 License: Apache Software License (Apache License 2.0)
 Copyright 2014 Amazon.com, Inc
-
-Library: docutils
-Version: 0.16
-License: Public Domain
-Copyright 2011 Günter Milde,
