@@ -9,8 +9,8 @@
     "product_name": "Systems Manager",
     "product_version_regex": ".*",
     "publisher": "Splunk",
-    "license": "Copyright (c) 2019-2023 Splunk Inc.",
-    "app_version": "2.3.1",
+    "license": "Copyright (c) 2019-2024 Splunk Inc.",
+    "app_version": "2.3.2",
     "utctime_updated": "2022-01-07T22:40:06.000000Z",
     "package_name": "phantom_awssystemsmanager",
     "main_module": "awssystemsmanager_connector.py",
@@ -40,24 +40,12 @@
                 "input_file": "wheels/shared/botocore-1.20.23-py2.py3-none-any.whl"
             },
             {
-                "module": "certifi",
-                "input_file": "wheels/shared/certifi-2021.10.8-py2.py3-none-any.whl"
-            },
-            {
                 "module": "chardet",
                 "input_file": "wheels/shared/chardet-3.0.4-py2.py3-none-any.whl"
             },
             {
-                "module": "docutils",
-                "input_file": "wheels/shared/docutils-0.16-py2.py3-none-any.whl"
-            },
-            {
                 "module": "futures",
                 "input_file": "wheels/py2/futures-3.2.0-py2-none-any.whl"
-            },
-            {
-                "module": "idna",
-                "input_file": "wheels/shared/idna-2.10-py2.py3-none-any.whl"
             },
             {
                 "module": "jmespath",
@@ -66,10 +54,6 @@
             {
                 "module": "python_dateutil",
                 "input_file": "wheels/shared/python_dateutil-2.8.2-py2.py3-none-any.whl"
-            },
-            {
-                "module": "requests",
-                "input_file": "wheels/shared/requests-2.25.0-py2.py3-none-any.whl"
             },
             {
                 "module": "s3transfer",
@@ -82,10 +66,6 @@
             {
                 "module": "soupsieve",
                 "input_file": "wheels/shared/soupsieve-1.9.6-py2.py3-none-any.whl"
-            },
-            {
-                "module": "urllib3",
-                "input_file": "wheels/shared/urllib3-1.26.7-py2.py3-none-any.whl"
             }
         ]
     },
