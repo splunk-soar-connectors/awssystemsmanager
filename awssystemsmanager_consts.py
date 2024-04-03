@@ -1,6 +1,6 @@
 # File: awssystemsmanager_consts.py
 #
-# Copyright (c) 2019-2023 Splunk Inc.
+# Copyright (c) 2019-2024 Splunk Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 #
 # Define your constants here
 SSM_JSON_ACCESS_KEY = "access_key"
-SSM_JSON_SECRET_KEY = "secret_key"
+SSM_JSON_SECRET_KEY = "secret_key"  # pragma: allowlist secret
 SSM_JSON_REGION = "region"
 SSM_JSON_DEFAULT_S3_BUCKET = "default_s3_bucket"
 SSM_JSON_BAD_ASSET_CONFIG_MSG = "Please provide access keys or select assume role check box in asset configuration"
@@ -46,7 +46,7 @@ SSM_REGION_DICT = {
     }
 
 POWERSHELL_DOCUMENT = 'AWS-RunPowerShellScript'
-POWERSHELL_DOC_HASH = '2142e42a19e0955cc09e43600bf2e633df1917b69d2be9693737dfd62e0fdf61'
+POWERSHELL_DOC_HASH = '2142e42a19e0955cc09e43600bf2e633df1917b69d2be9693737dfd62e0fdf61'  # pragma: allowlist secret
 LINUX_DOCUMENT = 'AWS-RunShellScript'
-LINUX_DOC_HASH = '99749de5e62f71e5ebe9a55c2321e2c394796afe7208cff048696541e6f6771e'
+LINUX_DOC_HASH = '99749de5e62f71e5ebe9a55c2321e2c394796afe7208cff048696541e6f6771e'  # pragma: allowlist secret
 DEFAULT_REQUEST_TIMEOUT = 30  # in seconds
