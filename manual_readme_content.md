@@ -1,30 +1,16 @@
-[comment]: # " File: README.md"
-[comment]: # "  Copyright (c) 2019-2024 Splunk Inc."
-[comment]: # ""
-[comment]: # "Licensed under the Apache License, Version 2.0 (the 'License');"
-[comment]: # "you may not use this file except in compliance with the License."
-[comment]: # "You may obtain a copy of the License at"
-[comment]: # ""
-[comment]: # "    http://www.apache.org/licenses/LICENSE-2.0"
-[comment]: # ""
-[comment]: # "Unless required by applicable law or agreed to in writing, software distributed under"
-[comment]: # "the License is distributed on an 'AS IS' BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,"
-[comment]: # "either express or implied. See the License for the specific language governing permissions"
-[comment]: # "and limitations under the License."
-[comment]: # ""
 ## Authorization
 
 Upon installing AWS Systems Manager and configuring your asset, you will want to make sure your AWS
-account (preferably with Administrator privileges) has the following permissions:  
+account (preferably with Administrator privileges) has the following permissions:
 
--   The AmazonSSMFullAccess policy is attached directly to the account
--   Ability to read and write to S3 buckets
+- The AmazonSSMFullAccess policy is attached directly to the account
+- Ability to read and write to S3 buckets
 
 If it is preferred to use a role and Phantom is running as an EC2 instance, the **use_role**
 checkbox can be checked instead. This will allow the role that is attached to the instance to be
 used. Please see the [AWS EC2 and IAM
 documentation](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/iam-roles-for-amazon-ec2.html)
-for more information.  
+for more information.\
 By default, AWS Systems Manager does not have permission to perform actions on your instances. You
 must make sure to attach the AmazonEC2RoleforSSM IAM policy to the instance that you want to manage
 with SSM. For more information on setting up your account and instances with SSM privileges, visit
@@ -44,11 +30,9 @@ documentation](https://docs.aws.amazon.com/iam/index.html) .
 
 ## Playbook Backward Compatibility
 
--   A new asset configuration parameter has been added in v2.0 of the app. Hence, it is requested to
-    the end-user to update their existing assets and playbooks accordingly.
+- A new asset configuration parameter has been added in v2.0 of the app. Hence, it is requested to
+  the end-user to update their existing assets and playbooks accordingly.
 
-      
-
-    -   Default S3 Bucket Name: This parameter defines the default AWS S3 bucket to be used for
-        writing the output of the **get file** and the **execute program** actions. For performance
-        optimality, the **test connectivity** action does not validate this parameter.
+  - Default S3 Bucket Name: This parameter defines the default AWS S3 bucket to be used for
+    writing the output of the **get file** and the **execute program** actions. For performance
+    optimality, the **test connectivity** action does not validate this parameter.
