@@ -656,6 +656,7 @@ class AwsSystemsManagerConnector(BaseConnector):
             max_results = param.get('max_results')
             # This flag is to handle the special case where max_results is a number greater than 50
             flag = False
+            limit = 0
             if max_results == 0:
                 return action_result.set_status(phantom.APP_ERROR, "MaxResults parameter must be greater than 0")
             elif max_results is not None and max_results > 50:
