@@ -9,7 +9,7 @@
     "product_name": "Systems Manager",
     "product_version_regex": ".*",
     "publisher": "Splunk",
-    "license": "Copyright (c) 2019-2024 Splunk Inc.",
+    "license": "Copyright (c) 2019-2025 Splunk Inc.",
     "app_version": "2.3.2",
     "utctime_updated": "2022-01-07T22:40:06.000000Z",
     "package_name": "phantom_awssystemsmanager",
@@ -42,10 +42,6 @@
             {
                 "module": "chardet",
                 "input_file": "wheels/shared/chardet-3.0.4-py2.py3-none-any.whl"
-            },
-            {
-                "module": "futures",
-                "input_file": "wheels/py2/futures-3.2.0-py2-none-any.whl"
             },
             {
                 "module": "jmespath",
