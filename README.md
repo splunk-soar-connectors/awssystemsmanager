@@ -4,7 +4,7 @@ Publisher: Splunk <br>
 Connector Version: 2.3.2 <br>
 Product Vendor: AWS <br>
 Product Name: Systems Manager <br>
-Minimum Product Version: 5.2.0
+Minimum Product Version: 6.3.0
 
 This app integrates with AWS Simple Systems Manager (SSM) to remotely and securely manage the configuration of any EC2 instance or on-premise machine configured for SSM
 
