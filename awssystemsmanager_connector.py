@@ -361,6 +361,30 @@ class AwsSystemsManagerConnector(BaseConnector):
         self.save_progress("Test Connectivity Passed")
         return action_result.set_status(phantom.APP_SUCCESS)
 
+    def _wait_for_command_invocation(self, action_result, command_id, instance_id, timeout_seconds=None):
+        poll_timeout = timeout_seconds or SSM_COMMAND_POLL_DEFAULT_TIMEOUT_SECONDS
+        poll_timeout = min(poll_timeout + SSM_COMMAND_POLL_GRACE_SECONDS, SSM_COMMAND_POLL_MAX_TIMEOUT_SECONDS)
+        deadline = time.monotonic() + poll_timeout
+
+        while time.monotonic() < deadline:
+            try:
+                response = self._client.get_command_invocation(CommandId=command_id, InstanceId=instance_id)
+            except Exception as e:
+                error_code = getattr(e, "response", {}).get("Error", {}).get("Code")
+                if error_code == "InvocationDoesNotExist":
+                    time.sleep(SSM_COMMAND_POLL_INTERVAL_SECONDS)
+                    continue
+                return RetVal(action_result.set_status(phantom.APP_ERROR, f"Failed to get command invocation status: {e}"), None)
+
+            invocation = self._sanitize_data(response)
+            status = invocation.get("Status")
+            if status in {"Success", "Cancelled", "TimedOut", "Failed"}:
+                return phantom.APP_SUCCESS, invocation
+
+            time.sleep(SSM_COMMAND_POLL_INTERVAL_SECONDS)
+
+        return RetVal(action_result.set_status(phantom.APP_ERROR, "Timed out waiting for the SSM command invocation to finish"), None)
+
     def _handle_send_command(self, param):
         self.save_progress(f"In action handler for: {self.get_action_identifier()}")
 
@@ -431,10 +455,17 @@ class AwsSystemsManagerConnector(BaseConnector):
         result_json = {"Command": response["Command"]}
         result_json["ResponseMetadata"] = response["ResponseMetadata"]
 
-        output_s3_object_key = response["Command"]["CommandId"] + "/" + instance_id + "/" + object_path
+        command_id = response["Command"]["CommandId"]
+        output_s3_object_key = command_id + "/" + instance_id + "/" + object_path
 
-        # Give time for command output to be written to S3 bucket
-        time.sleep(10)
+        ret_val, invocation = self._wait_for_command_invocation(action_result, command_id, instance_id, timeout_seconds)
+        if phantom.is_fail(ret_val):
+            return action_result.get_status()
+
+        result_json["CommandInvocation"] = invocation
+        command_succeeded = invocation.get("Status") == "Success" and invocation.get("ResponseCode") == 0
+        if not command_succeeded:
+            output_s3_object_key = output_s3_object_key.replace("stdout", "stderr")
 
         try:
             ret_val, resp_json = self._get_s3_object(
@@ -443,9 +474,14 @@ class AwsSystemsManagerConnector(BaseConnector):
         except Exception:
             # Look for stderr file if stdout file was not found. If this is get_file action, then action fails with a no file found message.
             try:
-                if self.get_action_identifier() == "get_file":
+                if self.get_action_identifier() == "get_file" and command_succeeded:
                     return action_result.set_status(
                         phantom.APP_ERROR, f"{file_path}: No such file found. Please check full file path (include filename)"
+                    )
+                if not command_succeeded:
+                    return action_result.set_status(
+                        phantom.APP_ERROR,
+                        f"SSM command finished with status {invocation.get('Status')} and response code {invocation.get('ResponseCode')}",
                     )
                 output_s3_object_key = output_s3_object_key.replace("stdout", "stderr")
                 ret_val, resp_json = self._get_s3_object(
@@ -458,6 +494,15 @@ class AwsSystemsManagerConnector(BaseConnector):
 
         # Add the response into the data section
         action_result.add_data(result_json)
+
+        if not command_succeeded:
+            summary = action_result.update_summary({})
+            summary["status"] = invocation.get("Status")
+            summary["response_code"] = invocation.get("ResponseCode")
+            return action_result.set_status(
+                phantom.APP_ERROR,
+                f"SSM command finished with status {invocation.get('Status')} and response code {invocation.get('ResponseCode')}",
+            )
 
         # Add a dictionary that is made up of the most important values from data into the summary
         summary = action_result.update_summary({})
