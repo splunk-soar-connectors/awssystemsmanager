@@ -1,6 +1,6 @@
 # File: awssystemsmanager_connector.py
 #
-# Copyright (c) 2019-2025 Splunk Inc.
+# Copyright (c) 2019-2026 Splunk Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -361,6 +361,30 @@ class AwsSystemsManagerConnector(BaseConnector):
         self.save_progress("Test Connectivity Passed")
         return action_result.set_status(phantom.APP_SUCCESS)
 
+    def _wait_for_command_invocation(self, action_result, command_id, instance_id, timeout_seconds=None):
+        poll_timeout = timeout_seconds or SSM_COMMAND_POLL_DEFAULT_TIMEOUT_SECONDS
+        poll_timeout = min(poll_timeout + SSM_COMMAND_POLL_GRACE_SECONDS, SSM_COMMAND_POLL_MAX_TIMEOUT_SECONDS)
+        deadline = time.monotonic() + poll_timeout
+
+        while time.monotonic() < deadline:
+            try:
+                response = self._client.get_command_invocation(CommandId=command_id, InstanceId=instance_id)
+            except Exception as e:
+                error_code = getattr(e, "response", {}).get("Error", {}).get("Code")
+                if error_code == "InvocationDoesNotExist":
+                    time.sleep(SSM_COMMAND_POLL_INTERVAL_SECONDS)
+                    continue
+                return RetVal(action_result.set_status(phantom.APP_ERROR, f"Failed to get command invocation status: {e}"), None)
+
+            invocation = self._sanitize_data(response)
+            status = invocation.get("Status")
+            if status in {"Success", "Cancelled", "TimedOut", "Failed"}:
+                return phantom.APP_SUCCESS, invocation
+
+            time.sleep(SSM_COMMAND_POLL_INTERVAL_SECONDS)
+
+        return RetVal(action_result.set_status(phantom.APP_ERROR, "Timed out waiting for the SSM command invocation to finish"), None)
+
     def _handle_send_command(self, param):
         self.save_progress(f"In action handler for: {self.get_action_identifier()}")
 
@@ -431,10 +455,17 @@ class AwsSystemsManagerConnector(BaseConnector):
         result_json = {"Command": response["Command"]}
         result_json["ResponseMetadata"] = response["ResponseMetadata"]
 
-        output_s3_object_key = response["Command"]["CommandId"] + "/" + instance_id + "/" + object_path
+        command_id = response["Command"]["CommandId"]
+        output_s3_object_key = command_id + "/" + instance_id + "/" + object_path
 
-        # Give time for command output to be written to S3 bucket
-        time.sleep(10)
+        ret_val, invocation = self._wait_for_command_invocation(action_result, command_id, instance_id, timeout_seconds)
+        if phantom.is_fail(ret_val):
+            return action_result.get_status()
+
+        result_json["CommandInvocation"] = invocation
+        command_succeeded = invocation.get("Status") == "Success" and invocation.get("ResponseCode") == 0
+        if not command_succeeded:
+            output_s3_object_key = output_s3_object_key.replace("stdout", "stderr")
 
         try:
             ret_val, resp_json = self._get_s3_object(
@@ -443,9 +474,14 @@ class AwsSystemsManagerConnector(BaseConnector):
         except Exception:
             # Look for stderr file if stdout file was not found. If this is get_file action, then action fails with a no file found message.
             try:
-                if self.get_action_identifier() == "get_file":
+                if self.get_action_identifier() == "get_file" and command_succeeded:
                     return action_result.set_status(
                         phantom.APP_ERROR, f"{file_path}: No such file found. Please check full file path (include filename)"
+                    )
+                if not command_succeeded:
+                    return action_result.set_status(
+                        phantom.APP_ERROR,
+                        f"SSM command finished with status {invocation.get('Status')} and response code {invocation.get('ResponseCode')}",
                     )
                 output_s3_object_key = output_s3_object_key.replace("stdout", "stderr")
                 ret_val, resp_json = self._get_s3_object(
@@ -458,6 +494,15 @@ class AwsSystemsManagerConnector(BaseConnector):
 
         # Add the response into the data section
         action_result.add_data(result_json)
+
+        if not command_succeeded:
+            summary = action_result.update_summary({})
+            summary["status"] = invocation.get("Status")
+            summary["response_code"] = invocation.get("ResponseCode")
+            return action_result.set_status(
+                phantom.APP_ERROR,
+                f"SSM command finished with status {invocation.get('Status')} and response code {invocation.get('ResponseCode')}",
+            )
 
         # Add a dictionary that is made up of the most important values from data into the summary
         summary = action_result.update_summary({})
@@ -554,23 +599,24 @@ class AwsSystemsManagerConnector(BaseConnector):
         max_results = param.get("max_results")
         command_id = param.get("command_id")
         instance_id = param.get("instance_id")
+        next_token = param.get("next_token")
+        seen_tokens = set()
+        page_count = 0
+
+        if max_results is not None and max_results <= 0:
+            return action_result.set_status(phantom.APP_ERROR, "MaxResults parameter must be greater than 0")
 
         while True:
-            limit = None
-            if max_results == 0:
-                return action_result.set_status(phantom.APP_ERROR, "MaxResults parameter must be greater than 0")
-            elif max_results is not None and max_results > 50:
-                limit = max_results
-                max_results = None
-            next_token = param.get("next_token")
+            if page_count >= SSM_MAX_PAGINATION_PAGES or total_commands >= SSM_MAX_PAGINATION_ITEMS:
+                return action_result.set_status(phantom.APP_ERROR, "List commands exceeded the connector pagination safety limit")
 
             args = {}
             if command_id:
                 args["CommandId"] = command_id
             if instance_id:
                 args["InstanceId"] = instance_id
-            if max_results:
-                args["MaxResults"] = max_results
+            if max_results is not None:
+                args["MaxResults"] = min(50, max_results - total_commands)
             if next_token:
                 args["NextToken"] = next_token
 
@@ -580,36 +626,29 @@ class AwsSystemsManagerConnector(BaseConnector):
             if phantom.is_fail(ret_val):
                 return action_result.get_status()
 
+            page_count += 1
+
             num_commands = len(response["Commands"])
             total_commands += num_commands
 
             self.debug_print(f"Found {num_commands} commands in last list_commands response")
 
-            # handles limitation of boto3 pagination results greater than 50
-            if limit is not None:
-                action_result.add_data(response)
-                limit = limit - num_commands
-                max_results = limit
-                if response.get("NextToken"):
-                    param["next_token"] = response.get("NextToken")
-                    continue
-                else:
-                    # Add a dictionary that is made up of the most important values from data into the summary
-                    summary = action_result.update_summary({})
-                    summary["num_commands"] = total_commands
-                    return action_result.set_status(phantom.APP_SUCCESS)
-
             # Add the response into the data section
             action_result.add_data(response)
             next_token = response.get("NextToken")
 
-            if next_token and (max_results is None or num_commands == 0):
-                param["next_token"] = response["NextToken"]
-            else:
+            if max_results is not None and total_commands >= max_results:
+                next_token = None
+
+            if not next_token:
                 # Add a dictionary that is made up of the most important values from data into the summary
                 summary = action_result.update_summary({})
                 summary["num_commands"] = total_commands
                 return action_result.set_status(phantom.APP_SUCCESS)
+
+            if next_token in seen_tokens:
+                return action_result.set_status(phantom.APP_ERROR, "List commands returned a repeated pagination token")
+            seen_tokens.add(next_token)
 
     def _handle_list_documents(self, param):
         self.save_progress(f"In action handler for: {self.get_action_identifier()}")
@@ -621,23 +660,21 @@ class AwsSystemsManagerConnector(BaseConnector):
             return action_result.get_status()
 
         num_documents = 0
+        max_results = param.get("max_results")
+        next_token = param.get("next_token")
+        seen_tokens = set()
+        page_count = 0
+
+        if max_results is not None and max_results <= 0:
+            return action_result.set_status(phantom.APP_ERROR, "MaxResults parameter must be greater than 0")
 
         while True:
             name = param.get("name")
             owner = param.get("owner")
             platform_type = param.get("platform_type")
             document_type = param.get("document_type")
-            max_results = param.get("max_results")
-            # This flag is to handle the special case where max_results is a number greater than 50
-            flag = False
-            limit = 0
-            if max_results == 0:
-                return action_result.set_status(phantom.APP_ERROR, "MaxResults parameter must be greater than 0")
-            elif max_results is not None and max_results > 50:
-                limit = max_results
-                max_results = None
-                flag = True
-            next_token = param.get("next_token")
+            if page_count >= SSM_MAX_PAGINATION_PAGES or num_documents >= SSM_MAX_PAGINATION_ITEMS:
+                return action_result.set_status(phantom.APP_ERROR, "List documents exceeded the connector pagination safety limit")
 
             args = {}
             if name or owner or platform_type or document_type:
@@ -655,8 +692,8 @@ class AwsSystemsManagerConnector(BaseConnector):
             if document_type:
                 document_obj = {"key": "DocumentType", "value": document_type}
                 args["DocumentFilterList"].append(document_obj)
-            if max_results:
-                args["MaxResults"] = max_results
+            if max_results is not None:
+                args["MaxResults"] = min(50, max_results - num_documents)
             if next_token:
                 args["NextToken"] = next_token
 
@@ -668,36 +705,29 @@ class AwsSystemsManagerConnector(BaseConnector):
             if phantom.is_fail(ret_val):
                 return action_result.get_status()
 
+            page_count += 1
+
             next_token = response.get("NextToken")
+            documents = response["DocumentIdentifiers"]
 
-            # boto3 returning incorrect pagination results. This logic corrects the amount of results added
-            if max_results is not None or flag:
-                if flag:
-                    upper_bound = limit - num_documents
-                else:
-                    upper_bound = max_results - num_documents
-                if upper_bound > len(response["DocumentIdentifiers"]):
-                    for document in response["DocumentIdentifiers"]:
-                        action_result.add_data(document)
-                    num_documents = num_documents + len(response["DocumentIdentifiers"])
-                else:
-                    for document in response["DocumentIdentifiers"][0:upper_bound]:
-                        action_result.add_data(document)
-                    num_documents = num_documents + len(response["DocumentIdentifiers"][0:upper_bound])
-            else:
-                for document in response["DocumentIdentifiers"]:
-                    action_result.add_data(document)
-                num_documents = num_documents + len(response["DocumentIdentifiers"])
+            if max_results is not None:
+                documents = documents[: max_results - num_documents]
+            for document in documents:
+                action_result.add_data(document)
+            num_documents += len(documents)
 
-            if next_token and max_results is None:
-                param["next_token"] = response["NextToken"]
-            elif max_results is not None and num_documents < max_results and next_token:
-                param["next_token"] = response["NextToken"]
-            else:
+            if max_results is not None and num_documents >= max_results:
+                next_token = None
+
+            if not next_token:
                 # Add a dictionary that is made up of the most important values from data into the summary
                 summary = action_result.update_summary({})
                 summary["num_documents"] = num_documents
                 return action_result.set_status(phantom.APP_SUCCESS)
+
+            if next_token in seen_tokens:
+                return action_result.set_status(phantom.APP_ERROR, "List documents returned a repeated pagination token")
+            seen_tokens.add(next_token)
 
     def _handle_get_parameter(self, param):
         self.save_progress(f"In action handler for: {self.get_action_identifier()}")

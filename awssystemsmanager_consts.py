@@ -1,6 +1,6 @@
 # File: awssystemsmanager_consts.py
 #
-# Copyright (c) 2019-2025 Splunk Inc.
+# Copyright (c) 2019-2026 Splunk Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -50,3 +50,9 @@ POWERSHELL_DOC_HASH = "2142e42a19e0955cc09e43600bf2e633df1917b69d2be9693737dfd62
 LINUX_DOCUMENT = "AWS-RunShellScript"
 LINUX_DOC_HASH = "99749de5e62f71e5ebe9a55c2321e2c394796afe7208cff048696541e6f6771e"  # pragma: allowlist secret
 DEFAULT_REQUEST_TIMEOUT = 30  # in seconds
+SSM_COMMAND_POLL_INTERVAL_SECONDS = 2
+SSM_COMMAND_POLL_DEFAULT_TIMEOUT_SECONDS = 300
+SSM_COMMAND_POLL_MAX_TIMEOUT_SECONDS = 900
+SSM_COMMAND_POLL_GRACE_SECONDS = 30
+SSM_MAX_PAGINATION_PAGES = 1000
+SSM_MAX_PAGINATION_ITEMS = 100000

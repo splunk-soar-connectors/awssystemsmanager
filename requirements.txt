@@ -1,4 +1,4 @@
 boto3==1.40.9
 botocore==1.40.9
 jmespath==0.9.3
-s3transfer
+s3transfer==0.13.1
