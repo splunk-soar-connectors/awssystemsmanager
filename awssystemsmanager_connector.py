@@ -262,7 +262,7 @@ class AwsSystemsManagerConnector(BaseConnector):
     def _get_s3_bucket(self, action_result, output_s3_bucket_name, param):
         self._create_s3_client(action_result, param)
 
-        ret_val, resp_json = self._make_boto_call(action_result, "get_bucket_accelerate_configuration", Bucket=output_s3_bucket_name)
+        ret_val, _resp_json = self._make_boto_call(action_result, "get_bucket_accelerate_configuration", Bucket=output_s3_bucket_name)
 
         return ret_val
 
@@ -276,9 +276,9 @@ class AwsSystemsManagerConnector(BaseConnector):
 
         # boto3 bug
         if location["LocationConstraint"] == "us-east-1":
-            ret_val, resp_json = self._make_boto_call(action_result, "create_bucket", Bucket=output_s3_bucket_name)
+            ret_val, _resp_json = self._make_boto_call(action_result, "create_bucket", Bucket=output_s3_bucket_name)
         else:
-            ret_val, resp_json = self._make_boto_call(
+            ret_val, _resp_json = self._make_boto_call(
                 action_result, "create_bucket", Bucket=output_s3_bucket_name, CreateBucketConfiguration=location
             )
 
@@ -355,7 +355,7 @@ class AwsSystemsManagerConnector(BaseConnector):
             return action_result.get_status()
 
         # make rest call
-        ret_val, resp_json = self._make_boto_call(action_result, "list_commands", MaxResults=1)
+        ret_val, _resp_json = self._make_boto_call(action_result, "list_commands", MaxResults=1)
 
         if phantom.is_fail(ret_val):
             self.save_progress("Test Connectivity Failed.")
