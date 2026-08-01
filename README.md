@@ -107,7 +107,7 @@ PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
 **comment** | optional | User-specified information about the command, such as a brief description of what the command should do | string | |
 **output_s3_bucket_name** | optional | The name of the existing S3 bucket where command execution responses should be stored | string | |
 **save_output_to_vault** | optional | Store the output of the command into the vault | boolean | |
-**credentials** | optional | Assumed role credentials | string | `aws credentials` |
+**credentials** | optional | Assumed role credentials | password | `aws credentials` |
 
 #### Action Output
 
@@ -147,7 +147,6 @@ action_result.summary.status | string | | Successfully executed program |
 action_result.message | string | | Status: Successfully executed program, Created vault id: 6f3832d6a9dd6e41533f9648052c07f2379ec6fa |
 summary.total_objects | numeric | | 1 2 |
 summary.total_objects_successful | numeric | | 1 0 |
-action_result.parameter.credentials | string | `aws credentials` | {'AccessKeyId': 'REDACTED', 'Expiration': '2021-06-07 22:28:04', 'SecretAccessKey': 'REDACTED', 'SessionToken': 'REDACTED'} |
 
 ## action: 'get file'
 
@@ -163,7 +162,7 @@ PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
 **instance_id** | required | The AWS Instance ID of where to grab the file from | string | `aws instance id` |
 **platform_type** | required | The operating system of the instance | string | |
 **file_path** | required | Full path of the file to download (include filename) | string | |
-**credentials** | optional | Assumed role credentials | string | `aws credentials` |
+**credentials** | optional | Assumed role credentials | password | `aws credentials` |
 
 #### Action Output
 
@@ -213,7 +212,6 @@ action_result.summary.status | string | | Successfully downloaded file into the 
 action_result.message | string | | Status: Successfully downloaded file into the vault, Created vault id: 3fa5db539d7bceec01ac4c100481aa5682766d33 |
 summary.total_objects | numeric | | 1 |
 summary.total_objects_successful | numeric | | 1 |
-action_result.parameter.credentials | string | `aws credentials` | {'AccessKeyId': 'REDACTED', 'Expiration': '2021-06-07 22:28:04', 'SecretAccessKey': 'REDACTED', 'SessionToken': 'REDACTED'} |
 
 ## action: 'run document'
 
@@ -236,7 +234,7 @@ PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
 **timeout_seconds** | optional | If this time is reached and the command has not already started running, it will not run | numeric | |
 **comment** | optional | User-specified information about the command, such as a brief description of what the command should do | string | |
 **output_s3_bucket_name** | optional | The name of the S3 bucket where command execution responses should be stored | string | |
-**credentials** | optional | Assumed role credentials | string | `aws credentials` |
+**credentials** | optional | Assumed role credentials | password | `aws credentials` |
 
 #### Action Output
 
@@ -288,7 +286,6 @@ action_result.summary.status | string | | Successfully sent command |
 action_result.message | string | | Status: Successfully sent command |
 summary.total_objects | numeric | | 1 |
 summary.total_objects_successful | numeric | | 1 |
-action_result.parameter.credentials | string | `aws credentials` | {'AccessKeyId': 'REDACTED', 'Expiration': '2021-06-07 22:28:04', 'SecretAccessKey': 'REDACTED', 'SessionToken': 'REDACTED'} |
 
 ## action: 'list commands'
 
@@ -304,7 +301,7 @@ PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
 **command_id** | optional | If provided, lists only the specified command | string | `aws command id` |
 **instance_id** | optional | Lists commands issued against this instance ID | string | `aws instance id` |
 **max_results** | optional | The maximum number of items to return for this call | numeric | |
-**credentials** | optional | Assumed role credentials | string | `aws credentials` |
+**credentials** | optional | Assumed role credentials | password | `aws credentials` |
 
 #### Action Output
 
@@ -355,7 +352,6 @@ action_result.summary.num_commands | numeric | | 43 1 |
 action_result.message | string | | Num commands: 43 Num commands: 1 |
 summary.total_objects | numeric | | 1 |
 summary.total_objects_successful | numeric | | 1 |
-action_result.parameter.credentials | string | `aws credentials` | {'AccessKeyId': 'REDACTED', 'Expiration': '2021-06-07 22:28:04', 'SecretAccessKey': 'REDACTED', 'SessionToken': 'REDACTED'} |
 
 ## action: 'list documents'
 
@@ -373,7 +369,7 @@ PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
 **platform_type** | optional | The OS platform type that the document can execute on (i.e. Windows, Linux) | string | |
 **document_type** | optional | The type of document | string | |
 **max_results** | optional | The maximum number of items to return for this call | numeric | |
-**credentials** | optional | Assumed role credentials | string | `aws credentials` |
+**credentials** | optional | Assumed role credentials | password | `aws credentials` |
 
 #### Action Output
 
@@ -397,7 +393,6 @@ action_result.summary.num_documents | numeric | | 5 |
 action_result.message | string | | Num documents: 5 |
 summary.total_objects | numeric | | 1 |
 summary.total_objects_successful | numeric | | 1 |
-action_result.parameter.credentials | string | `aws credentials` | {'AccessKeyId': 'REDACTED', 'Expiration': '2021-06-07 22:28:04', 'SecretAccessKey': 'REDACTED', 'SessionToken': 'REDACTED'} |
 
 ## action: 'get parameter'
 
@@ -412,7 +407,7 @@ PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
 --------- | -------- | ----------- | ---- | --------
 **name** | required | The name of the parameter that you want to query | string | `aws parameter name` |
 **with_decryption** | optional | Check to decrypt values of secure string parameters. This flag is ignored for String and StringList parameter types | boolean | |
-**credentials** | optional | Assumed role credentials | string | `aws credentials` |
+**credentials** | optional | Assumed role credentials | password | `aws credentials` |
 
 #### Action Output
 
@@ -440,7 +435,6 @@ action_result.summary.status | string | | Successfully retrieved parameter |
 action_result.message | string | | Status: Successfully retrieved parameter |
 summary.total_objects | numeric | | 1 |
 summary.total_objects_successful | numeric | | 1 |
-action_result.parameter.credentials | string | `aws credentials` | {'AccessKeyId': 'REDACTED', 'Expiration': '2021-06-07 22:28:04', 'SecretAccessKey': 'REDACTED', 'SessionToken': 'REDACTED'} |
 
 ## action: 'add parameter'
 
@@ -462,7 +456,7 @@ PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
 **key_id** | optional | The KMS Key ID that you want to use to encrypt a SecureString parameter. Defaults to the AWS KMS key automatically assigned to your AWS account if no key ID is provided | string | |
 **overwrite** | optional | Overwrite an existing parameter | boolean | |
 **allowed_pattern** | optional | A regular expression used to validate the parameter value. For example, for String types with values restricted to numbers, you can specify the following: AllowedPattern=^d+$ | string | |
-**credentials** | optional | Assumed role credentials | string | `aws credentials` |
+**credentials** | optional | Assumed role credentials | password | `aws credentials` |
 
 #### Action Output
 
@@ -490,7 +484,6 @@ action_result.summary.status | string | | Successfully added parameter |
 action_result.message | string | | Status: Successfully added parameter |
 summary.total_objects | numeric | | 1 |
 summary.total_objects_successful | numeric | | 1 |
-action_result.parameter.credentials | string | `aws credentials` | {'AccessKeyId': 'REDACTED', 'Expiration': '2021-06-07 22:28:04', 'SecretAccessKey': 'REDACTED', 'SessionToken': 'REDACTED'} |
 
 ## action: 'describe instance'
 
@@ -504,7 +497,7 @@ Read only: **True**
 PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
 --------- | -------- | ----------- | ---- | --------
 **instance_id** | required | The AWS instance ID | string | `aws instance id` |
-**credentials** | optional | Assumed role credentials | string | `aws credentials` |
+**credentials** | optional | Assumed role credentials | password | `aws credentials` |
 
 #### Action Output
 
@@ -541,7 +534,6 @@ action_result.summary.status | string | | Successfully retrieved instance inform
 action_result.message | string | | Status: Successfully retrieved instance information |
 summary.total_objects | numeric | | 1 |
 summary.total_objects_successful | numeric | | 1 |
-action_result.parameter.credentials | string | `aws credentials` | {'AccessKeyId': 'REDACTED', 'Expiration': '2021-06-07 22:28:04', 'SecretAccessKey': 'REDACTED', 'SessionToken': 'REDACTED'} |
 
 ______________________________________________________________________
 
