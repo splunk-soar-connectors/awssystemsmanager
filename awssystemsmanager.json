@@ -542,6 +542,13 @@
                         1,
                         0
                     ]
+                },
+                {
+                    "data_path": "action_result.parameter.credentials",
+                    "data_type": "password",
+                    "contains": [
+                        "aws credentials"
+                    ]
                 }
             ],
             "render": {
@@ -899,6 +906,13 @@
                     "data_type": "numeric",
                     "example_values": [
                         1
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.credentials",
+                    "data_type": "password",
+                    "contains": [
+                        "aws credentials"
                     ]
                 }
             ],
@@ -1313,6 +1327,13 @@
                     "example_values": [
                         1
                     ]
+                },
+                {
+                    "data_path": "action_result.parameter.credentials",
+                    "data_type": "password",
+                    "contains": [
+                        "aws credentials"
+                    ]
                 }
             ],
             "render": {
@@ -1697,6 +1718,13 @@
                     "example_values": [
                         1
                     ]
+                },
+                {
+                    "data_path": "action_result.parameter.credentials",
+                    "data_type": "password",
+                    "contains": [
+                        "aws credentials"
+                    ]
                 }
             ],
             "render": {
@@ -1897,6 +1925,13 @@
                     "data_type": "numeric",
                     "example_values": [
                         1
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.credentials",
+                    "data_type": "password",
+                    "contains": [
+                        "aws credentials"
                     ]
                 }
             ],
@@ -2108,6 +2143,13 @@
                     "data_type": "numeric",
                     "example_values": [
                         1
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.credentials",
+                    "data_type": "password",
+                    "contains": [
+                        "aws credentials"
                     ]
                 }
             ],
@@ -2346,6 +2388,13 @@
                     "data_type": "numeric",
                     "example_values": [
                         1
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.credentials",
+                    "data_type": "password",
+                    "contains": [
+                        "aws credentials"
                     ]
                 }
             ],
@@ -2614,6 +2663,13 @@
                     "data_type": "numeric",
                     "example_values": [
                         1
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.credentials",
+                    "data_type": "password",
+                    "contains": [
+                        "aws credentials"
                     ]
                 }
             ],
