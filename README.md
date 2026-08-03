@@ -147,7 +147,6 @@ action_result.summary.status | string | | Successfully executed program |
 action_result.message | string | | Status: Successfully executed program, Created vault id: 6f3832d6a9dd6e41533f9648052c07f2379ec6fa |
 summary.total_objects | numeric | | 1 2 |
 summary.total_objects_successful | numeric | | 1 0 |
-action_result.parameter.credentials | password | `aws credentials` | |
 
 ## action: 'get file'
 
@@ -213,7 +212,6 @@ action_result.summary.status | string | | Successfully downloaded file into the 
 action_result.message | string | | Status: Successfully downloaded file into the vault, Created vault id: 3fa5db539d7bceec01ac4c100481aa5682766d33 |
 summary.total_objects | numeric | | 1 |
 summary.total_objects_successful | numeric | | 1 |
-action_result.parameter.credentials | password | `aws credentials` | |
 
 ## action: 'run document'
 
@@ -288,7 +286,6 @@ action_result.summary.status | string | | Successfully sent command |
 action_result.message | string | | Status: Successfully sent command |
 summary.total_objects | numeric | | 1 |
 summary.total_objects_successful | numeric | | 1 |
-action_result.parameter.credentials | password | `aws credentials` | |
 
 ## action: 'list commands'
 
@@ -355,7 +352,6 @@ action_result.summary.num_commands | numeric | | 43 1 |
 action_result.message | string | | Num commands: 43 Num commands: 1 |
 summary.total_objects | numeric | | 1 |
 summary.total_objects_successful | numeric | | 1 |
-action_result.parameter.credentials | password | `aws credentials` | |
 
 ## action: 'list documents'
 
@@ -397,7 +393,6 @@ action_result.summary.num_documents | numeric | | 5 |
 action_result.message | string | | Num documents: 5 |
 summary.total_objects | numeric | | 1 |
 summary.total_objects_successful | numeric | | 1 |
-action_result.parameter.credentials | password | `aws credentials` | |
 
 ## action: 'get parameter'
 
@@ -440,7 +435,6 @@ action_result.summary.status | string | | Successfully retrieved parameter |
 action_result.message | string | | Status: Successfully retrieved parameter |
 summary.total_objects | numeric | | 1 |
 summary.total_objects_successful | numeric | | 1 |
-action_result.parameter.credentials | password | `aws credentials` | |
 
 ## action: 'add parameter'
 
@@ -490,7 +484,6 @@ action_result.summary.status | string | | Successfully added parameter |
 action_result.message | string | | Status: Successfully added parameter |
 summary.total_objects | numeric | | 1 |
 summary.total_objects_successful | numeric | | 1 |
-action_result.parameter.credentials | password | `aws credentials` | |
 
 ## action: 'describe instance'
 
@@ -541,7 +534,6 @@ action_result.summary.status | string | | Successfully retrieved instance inform
 action_result.message | string | | Status: Successfully retrieved instance information |
 summary.total_objects | numeric | | 1 |
 summary.total_objects_successful | numeric | | 1 |
-action_result.parameter.credentials | password | `aws credentials` | |
 
 ______________________________________________________________________
 
