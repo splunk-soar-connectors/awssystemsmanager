@@ -1,7 +1,7 @@
 # AWS Systems Manager
 
 Publisher: Splunk <br>
-Connector Version: 2.3.4 <br>
+Connector Version: 2.3.5 <br>
 Product Vendor: AWS <br>
 Product Name: Systems Manager <br>
 Minimum Product Version: 6.3.0
