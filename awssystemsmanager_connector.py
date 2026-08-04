@@ -610,13 +610,17 @@ class AwsSystemsManagerConnector(BaseConnector):
             if page_count >= SSM_MAX_PAGINATION_PAGES or total_commands >= SSM_MAX_PAGINATION_ITEMS:
                 return action_result.set_status(phantom.APP_ERROR, "List commands exceeded the connector pagination safety limit")
 
+            remaining_items = SSM_MAX_PAGINATION_ITEMS - total_commands
+            if max_results is not None:
+                remaining_items = min(remaining_items, max_results - total_commands)
+
             args = {}
             if command_id:
                 args["CommandId"] = command_id
             if instance_id:
                 args["InstanceId"] = instance_id
-            if max_results is not None:
-                args["MaxResults"] = min(50, max_results - total_commands)
+            requested_items = min(50, remaining_items)
+            args["MaxResults"] = requested_items
             if next_token:
                 args["NextToken"] = next_token
 
@@ -628,7 +632,13 @@ class AwsSystemsManagerConnector(BaseConnector):
 
             page_count += 1
 
-            num_commands = len(response["Commands"])
+            commands = response.get("Commands")
+            if not isinstance(commands, list):
+                return action_result.set_status(phantom.APP_ERROR, "List commands returned an invalid Commands page")
+            if len(commands) > requested_items:
+                return action_result.set_status(phantom.APP_ERROR, "List commands returned more items than the connector requested")
+
+            num_commands = len(commands)
             total_commands += num_commands
 
             self.debug_print(f"Found {num_commands} commands in last list_commands response")
@@ -676,6 +686,10 @@ class AwsSystemsManagerConnector(BaseConnector):
             if page_count >= SSM_MAX_PAGINATION_PAGES or num_documents >= SSM_MAX_PAGINATION_ITEMS:
                 return action_result.set_status(phantom.APP_ERROR, "List documents exceeded the connector pagination safety limit")
 
+            remaining_items = SSM_MAX_PAGINATION_ITEMS - num_documents
+            if max_results is not None:
+                remaining_items = min(remaining_items, max_results - num_documents)
+
             args = {}
             if name or owner or platform_type or document_type:
                 args["DocumentFilterList"] = []
@@ -692,8 +706,8 @@ class AwsSystemsManagerConnector(BaseConnector):
             if document_type:
                 document_obj = {"key": "DocumentType", "value": document_type}
                 args["DocumentFilterList"].append(document_obj)
-            if max_results is not None:
-                args["MaxResults"] = min(50, max_results - num_documents)
+            requested_items = min(50, remaining_items)
+            args["MaxResults"] = requested_items
             if next_token:
                 args["NextToken"] = next_token
 
@@ -708,10 +722,11 @@ class AwsSystemsManagerConnector(BaseConnector):
             page_count += 1
 
             next_token = response.get("NextToken")
-            documents = response["DocumentIdentifiers"]
-
-            if max_results is not None:
-                documents = documents[: max_results - num_documents]
+            documents = response.get("DocumentIdentifiers")
+            if not isinstance(documents, list):
+                return action_result.set_status(phantom.APP_ERROR, "List documents returned an invalid DocumentIdentifiers page")
+            if len(documents) > requested_items:
+                return action_result.set_status(phantom.APP_ERROR, "List documents returned more items than the connector requested")
             for document in documents:
                 action_result.add_data(document)
             num_documents += len(documents)

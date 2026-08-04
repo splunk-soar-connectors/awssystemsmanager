@@ -1,1 +1,3 @@
 **Unreleased**
+
+* Enforce local item allowances before retaining command and document result pages.
