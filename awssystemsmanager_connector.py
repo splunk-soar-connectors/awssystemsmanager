@@ -59,6 +59,10 @@ class AwsSystemsManagerConnector(BaseConnector):
         self._proxy = None
         self._python_version = None
 
+    @staticmethod
+    def _sanitize_action_parameters(param):
+        return {key: value for key, value in param.items() if key != "credentials"}
+
     def _sanitize_data(self, cur_obj):
         try:
             json.dumps(cur_obj)
@@ -186,7 +190,7 @@ class AwsSystemsManagerConnector(BaseConnector):
         temp_credentials = dict()
         if param and "credentials" in param:
             try:
-                temp_credentials = ast.literal_eval(param["credentials"])
+                temp_credentials = ast.literal_eval(param.get("credentials", ""))
                 self._access_key = temp_credentials.get("AccessKeyId", "")
                 self._secret_key = temp_credentials.get("SecretAccessKey", "")
                 self._session_token = temp_credentials.get("SessionToken", "")
@@ -223,7 +227,7 @@ class AwsSystemsManagerConnector(BaseConnector):
         temp_credentials = dict()
         if param and "credentials" in param:
             try:
-                temp_credentials = ast.literal_eval(param["credentials"])
+                temp_credentials = ast.literal_eval(param.get("credentials", ""))
                 self._access_key = temp_credentials.get("AccessKeyId", "")
                 self._secret_key = temp_credentials.get("SecretAccessKey", "")
                 self._session_token = temp_credentials.get("SessionToken", "")
@@ -258,7 +262,7 @@ class AwsSystemsManagerConnector(BaseConnector):
     def _get_s3_bucket(self, action_result, output_s3_bucket_name, param):
         self._create_s3_client(action_result, param)
 
-        ret_val, resp_json = self._make_boto_call(action_result, "get_bucket_accelerate_configuration", Bucket=output_s3_bucket_name)
+        ret_val, _resp_json = self._make_boto_call(action_result, "get_bucket_accelerate_configuration", Bucket=output_s3_bucket_name)
 
         return ret_val
 
@@ -272,9 +276,9 @@ class AwsSystemsManagerConnector(BaseConnector):
 
         # boto3 bug
         if location["LocationConstraint"] == "us-east-1":
-            ret_val, resp_json = self._make_boto_call(action_result, "create_bucket", Bucket=output_s3_bucket_name)
+            ret_val, _resp_json = self._make_boto_call(action_result, "create_bucket", Bucket=output_s3_bucket_name)
         else:
-            ret_val, resp_json = self._make_boto_call(
+            ret_val, _resp_json = self._make_boto_call(
                 action_result, "create_bucket", Bucket=output_s3_bucket_name, CreateBucketConfiguration=location
             )
 
@@ -343,7 +347,7 @@ class AwsSystemsManagerConnector(BaseConnector):
 
     def _handle_test_connectivity(self, param):
         # Add an action result object to self (BaseConnector) to represent the action for this param
-        action_result = self.add_action_result(ActionResult(dict(param)))
+        action_result = self.add_action_result(ActionResult(self._sanitize_action_parameters(param)))
 
         self.save_progress("Querying AWS to check credentials")
 
@@ -351,7 +355,7 @@ class AwsSystemsManagerConnector(BaseConnector):
             return action_result.get_status()
 
         # make rest call
-        ret_val, resp_json = self._make_boto_call(action_result, "list_commands", MaxResults=1)
+        ret_val, _resp_json = self._make_boto_call(action_result, "list_commands", MaxResults=1)
 
         if phantom.is_fail(ret_val):
             self.save_progress("Test Connectivity Failed.")
@@ -389,7 +393,7 @@ class AwsSystemsManagerConnector(BaseConnector):
         self.save_progress(f"In action handler for: {self.get_action_identifier()}")
 
         # Add an action result object to self (BaseConnector) to represent the action for this param
-        action_result = self.add_action_result(ActionResult(dict(param)))
+        action_result = self.add_action_result(ActionResult(self._sanitize_action_parameters(param)))
         instance_id = param["instance_id"]
         platform_type = param["platform_type"]
         if platform_type == "Windows":
@@ -523,7 +527,7 @@ class AwsSystemsManagerConnector(BaseConnector):
         self.save_progress(f"In action handler for: {self.get_action_identifier()}")
 
         # Add an action result object to self (BaseConnector) to represent the action for this param
-        action_result = self.add_action_result(ActionResult(dict(param)))
+        action_result = self.add_action_result(ActionResult(self._sanitize_action_parameters(param)))
 
         output_s3_bucket_name = param.get("output_s3_bucket_name")
         output_s3_key_prefix = param.get("output_s3_key_prefix")
@@ -590,7 +594,7 @@ class AwsSystemsManagerConnector(BaseConnector):
         self.save_progress(f"In action handler for: {self.get_action_identifier()}")
 
         # Add an action result object to self (BaseConnector) to represent the action for this param
-        action_result = self.add_action_result(ActionResult(dict(param)))
+        action_result = self.add_action_result(ActionResult(self._sanitize_action_parameters(param)))
 
         if not self._create_client(action_result, param):
             return action_result.get_status()
@@ -664,7 +668,7 @@ class AwsSystemsManagerConnector(BaseConnector):
         self.save_progress(f"In action handler for: {self.get_action_identifier()}")
 
         # Add an action result object to self (BaseConnector) to represent the action for this param
-        action_result = self.add_action_result(ActionResult(dict(param)))
+        action_result = self.add_action_result(ActionResult(self._sanitize_action_parameters(param)))
 
         if not self._create_client(action_result, param):
             return action_result.get_status()
@@ -748,7 +752,7 @@ class AwsSystemsManagerConnector(BaseConnector):
         self.save_progress(f"In action handler for: {self.get_action_identifier()}")
 
         # Add an action result object to self (BaseConnector) to represent the action for this param
-        action_result = self.add_action_result(ActionResult(dict(param)))
+        action_result = self.add_action_result(ActionResult(self._sanitize_action_parameters(param)))
 
         if not self._create_client(action_result, param):
             return action_result.get_status()
@@ -779,7 +783,7 @@ class AwsSystemsManagerConnector(BaseConnector):
         self.save_progress(f"In action handler for: {self.get_action_identifier()}")
 
         # Add an action result object to self (BaseConnector) to represent the action for this param
-        action_result = self.add_action_result(ActionResult(dict(param)))
+        action_result = self.add_action_result(ActionResult(self._sanitize_action_parameters(param)))
 
         if not self._create_client(action_result, param):
             return action_result.get_status()
@@ -822,7 +826,7 @@ class AwsSystemsManagerConnector(BaseConnector):
         self.save_progress(f"In action handler for: {self.get_action_identifier()}")
 
         # Add an action result object to self (BaseConnector) to represent the action for this param
-        action_result = self.add_action_result(ActionResult(dict(param)))
+        action_result = self.add_action_result(ActionResult(self._sanitize_action_parameters(param)))
 
         if not self._create_client(action_result, param):
             return action_result.get_status()
