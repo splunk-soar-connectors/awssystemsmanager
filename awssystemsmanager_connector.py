@@ -19,6 +19,7 @@ import ast
 import base64
 import json
 import os
+import shlex
 import sys
 import tempfile
 import time
@@ -62,6 +63,20 @@ class AwsSystemsManagerConnector(BaseConnector):
     @staticmethod
     def _sanitize_action_parameters(param):
         return {key: value for key, value in param.items() if key != "credentials"}
+
+    @staticmethod
+    def _powershell_literal(value):
+        """Return a PowerShell single-quoted literal for a caller-supplied value."""
+        value = (
+            value.replace("\u201c", "'")
+            .replace("\u201d", "'")
+            .replace("\u201e", "'")
+            .replace("\u2018", "'")
+            .replace("\u2019", "'")
+            .replace("\u201a", "'")
+            .replace("\u201b", "'")
+        )
+        return "'{}'".format(value.replace("'", "''"))
 
     def _sanitize_data(self, cur_obj):
         try:
@@ -409,9 +424,9 @@ class AwsSystemsManagerConnector(BaseConnector):
             file_path = param["file_path"].replace("\\", "/")
             file_name = file_path.split("/")[-1]
             if platform_type == "Windows":
-                command = f'[Convert]::ToBase64String([IO.File]::ReadAllBytes("{file_path}"))'
+                command = f"[Convert]::ToBase64String([IO.File]::ReadAllBytes({self._powershell_literal(file_path)}))"
             else:
-                command = "cat " + file_path + " | base64"
+                command = f"cat {shlex.quote(file_path)} | base64"
             save_output_to_vault = True
         else:
             command = param["command"]
